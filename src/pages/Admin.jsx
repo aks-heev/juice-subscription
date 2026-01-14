@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { format } from 'date-fns'
-import { Users, Package, DollarSign, TrendingUp, Search, Filter } from 'lucide-react'
+import { format, addDays, isWithinInterval, startOfToday, endOfDay, parseISO } from 'date-fns'
+import { Users, Package, DollarSign, TrendingUp, Search, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
 function Admin() {
@@ -38,6 +38,39 @@ function Admin() {
         count: subscriptions.filter(s => s.juice.id === juice.id).length
     })).sort((a, b) => b.count - a.count)
 
+    // Calculate Upcoming Deliveries (Next 7 days)
+    const generateUpcomingDeliveries = () => {
+        const upcoming = []
+        const today = startOfToday()
+        const next7Days = Array.from({ length: 7 }, (_, i) => addDays(today, i))
+
+        subscriptions.filter(s => s.status === 'active').forEach(sub => {
+            const startDate = parseISO(sub.customer.startDate)
+            const durationDays = sub.plan.id === 'weekly' ? 7 : 30
+            const endDate = addDays(startDate, durationDays)
+
+            next7Days.forEach(day => {
+                if (isWithinInterval(day, { start: startDate, end: endDate })) {
+                    upcoming.push({
+                        id: `${sub.id}-${format(day, 'yyyy-MM-dd')}`,
+                        date: day,
+                        subscription: sub
+                    })
+                }
+            })
+        })
+
+        const timeOrder = { morning: 1, afternoon: 2, evening: 3 }
+
+        return upcoming.sort((a, b) => {
+            const dateDiff = a.date.getTime() - b.date.getTime()
+            if (dateDiff !== 0) return dateDiff
+            return timeOrder[a.subscription.deliveryTime] - timeOrder[b.subscription.deliveryTime]
+        })
+    }
+
+    const upcomingDeliveries = generateUpcomingDeliveries()
+
     return (
         <div className="page">
             <div className="container py-8">
@@ -61,6 +94,63 @@ function Admin() {
 
                 {/* Main Content */}
                 <div className="admin-content">
+                    {/* Upcoming Deliveries Section */}
+                    <section className="admin-section">
+                        <div className="section-header">
+                            <h2 className="section-title">Upcoming Deliveries (Next 7 Days)</h2>
+                            <div className="badge badge-primary">{upcomingDeliveries.length} Deliveries</div>
+                        </div>
+
+                        {upcomingDeliveries.length === 0 ? (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">
+                                    <CalendarIcon size={40} />
+                                </div>
+                                <h3 className="empty-state-title">No Deliveries Scheduled</h3>
+                                <p className="empty-state-description">
+                                    There are no active subscriptions with deliveries in the next week.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="upcoming-deliveries-list">
+                                {upcomingDeliveries.map(delivery => (
+                                    <div key={delivery.id} className="delivery-row card">
+                                        <div className="delivery-date-cell">
+                                            <span className="date-day">{format(delivery.date, 'eee')}</span>
+                                            <span className="date-number">{format(delivery.date, 'd MMM')}</span>
+                                        </div>
+                                        <div className="delivery-main">
+                                            <div className="delivery-info">
+                                                <div className="delivery-juice">
+                                                    <span className="juice-emoji">{delivery.subscription.juice.image}</span>
+                                                    <strong>{delivery.subscription.juice.name}</strong>
+                                                </div>
+                                                <div className="delivery-customer">
+                                                    <Users size={14} />
+                                                    <span>{delivery.subscription.customer.name}</span>
+                                                </div>
+                                            </div>
+                                            <div className="delivery-meta">
+                                                <div className="delivery-time">
+                                                    <Clock size={14} />
+                                                    <span className="text-capitalize">{delivery.subscription.deliveryTime}</span>
+                                                </div>
+                                                <div className="delivery-address">
+                                                    <MapPin size={14} />
+                                                    <span className="text-truncate">{delivery.subscription.customer.address}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="delivery-qty">
+                                            <Package size={14} />
+                                            <span>x{delivery.subscription.quantity}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
                     {/* Subscriptions Table */}
                     <section className="admin-section">
                         <div className="section-header">
@@ -179,6 +269,102 @@ function Admin() {
                     display: flex;
                     flex-direction: column;
                     gap: var(--space-8);
+                }
+
+                .upcoming-deliveries-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3);
+                    max-height: 500px;
+                    overflow-y: auto;
+                    padding-right: var(--space-2);
+                    margin: 0 -var(--space-2);
+                    padding: 0 var(--space-2);
+                }
+
+                .delivery-row {
+                    display: flex;
+                    align-items: center;
+                    padding: var(--space-4);
+                    gap: var(--space-6);
+                }
+
+                .delivery-row:hover {
+                    transform: none;
+                    background: var(--color-gray-50);
+                }
+
+                .delivery-date-cell {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    min-width: 60px;
+                    padding-right: var(--space-4);
+                    border-right: 2px solid var(--color-gray-100);
+                }
+
+                .date-day {
+                    font-size: var(--text-xs);
+                    text-transform: uppercase;
+                    color: var(--color-gray-500);
+                    font-weight: var(--font-bold);
+                }
+
+                .date-number {
+                    font-size: var(--text-sm);
+                    font-weight: var(--font-bold);
+                    color: var(--color-primary);
+                }
+
+                .delivery-main {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-2);
+                }
+
+                .delivery-info {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-4);
+                }
+
+                .delivery-juice {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                }
+
+                .delivery-customer {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-1);
+                    font-size: var(--text-sm);
+                    color: var(--color-gray-600);
+                }
+
+                .delivery-meta {
+                    display: flex;
+                    gap: var(--space-6);
+                }
+
+                .delivery-time, .delivery-address, .delivery-qty {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-1);
+                    font-size: var(--text-xs);
+                    color: var(--color-gray-500);
+                }
+
+                .text-capitalize {
+                    text-transform: capitalize;
+                }
+
+                .text-truncate {
+                    max-width: 200px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
 
                 .admin-section {
