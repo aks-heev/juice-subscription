@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from './AuthContext'
 
 const AppContext = createContext()
 
@@ -79,23 +80,20 @@ const subscriptionPlans = [
 ]
 
 export function AppProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('juice_user')
-        return saved ? JSON.parse(saved) : null
-    })
+    const { user } = useAuth()
     const [juices, setJuices] = useState([])
     const [subscriptions, setSubscriptions] = useState([])
     const [loading, setLoading] = useState(true)
-    const [cart, setCart] = useState([])
     const [theme, setTheme] = useState(() => {
         const saved = localStorage.getItem('juice_theme') || 'light'
         document.documentElement.setAttribute('data-theme', saved)
         return saved
     })
 
-    // Fetch juices from Supabase
+    // Fetch juices and subscriptions from Supabase
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true)
             try {
                 // Fetch juices
                 const { data: juicesData, error: juicesError } = await supabase
@@ -111,12 +109,12 @@ export function AppProvider({ children }) {
                     setJuices(initialJuices.map((j, i) => ({ ...j, id: i + 1 })))
                 }
 
-                // Fetch subscriptions if customer logged in
-                if (user?.phone) {
+                // Fetch subscriptions only if user is logged in
+                if (user) {
                     const { data: subsData, error: subsError } = await supabase
                         .from('subscriptions')
                         .select('*, juices(*)')
-                        .eq('customer_phone', user.phone)
+                        .eq('user_id', user.id)
 
                     if (subsError) throw subsError
 
@@ -138,38 +136,13 @@ export function AppProvider({ children }) {
                     }))
                     setSubscriptions(mappedSubs)
                 } else {
-                    // If no real login, check all subscriptions for admin/test
-                    const { data: allSubs, error: allError } = await supabase
-                        .from('subscriptions')
-                        .select('*, juices(*)')
-
-                    if (!allError) {
-                        const mappedSubs = (allSubs || []).map(s => ({
-                            ...s,
-                            juice: s.juices,
-                            deliveryTime: s.delivery_time,
-                            customer: {
-                                name: s.customer_name,
-                                phone: s.customer_phone,
-                                address: s.customer_address,
-                                startDate: s.start_date
-                            },
-                            plan: {
-                                id: s.plan_id,
-                                name: s.plan_id === 'weekly' ? 'Weekly Plan' : 'Monthly Plan'
-                            }
-                        }))
-                        setSubscriptions(mappedSubs)
-                    }
+                    // Clear subscriptions if no user
+                    setSubscriptions([])
                 }
             } catch (err) {
                 console.error('Supabase fetch error:', err.message)
-                // Fallback to sample data for juices
+                // Fallback to sample data for juices only
                 setJuices(initialJuices.map((j, i) => ({ ...j, id: i + 1 })))
-
-                // Try LocalStorage for subscriptions as last resort
-                const saved = localStorage.getItem('juice_subscriptions')
-                if (saved) setSubscriptions(JSON.parse(saved))
             } finally {
                 setLoading(false)
             }
@@ -178,19 +151,14 @@ export function AppProvider({ children }) {
         fetchData()
     }, [user])
 
-    const login = (userData) => {
-        setUser(userData)
-        localStorage.setItem('juice_user', JSON.stringify(userData))
-    }
-
-    const logout = () => {
-        setUser(null)
-        localStorage.removeItem('juice_user')
-    }
-
     const addSubscription = async (subscription) => {
+        if (!user) {
+            throw new Error('You must be logged in to create a subscription')
+        }
+
         try {
             const newSubData = {
+                user_id: user.id,
                 juice_id: subscription.juice.id,
                 plan_id: subscription.plan.id,
                 quantity: subscription.quantity,
@@ -228,23 +196,11 @@ export function AppProvider({ children }) {
                 }
             }
 
-            const updated = [...subscriptions, mappedNewSub]
-            setSubscriptions(updated)
-            localStorage.setItem('juice_subscriptions', JSON.stringify(updated))
+            setSubscriptions(prev => [...prev, mappedNewSub])
             return mappedNewSub
         } catch (err) {
             console.error('Error adding subscription:', err.message)
-            // Fallback to local save
-            const fallbackSub = {
-                ...subscription,
-                id: Date.now(),
-                createdAt: new Date().toISOString(),
-                status: 'active'
-            }
-            const updated = [...subscriptions, fallbackSub]
-            setSubscriptions(updated)
-            localStorage.setItem('juice_subscriptions', JSON.stringify(updated))
-            return fallbackSub
+            throw err
         }
     }
 
@@ -257,18 +213,17 @@ export function AppProvider({ children }) {
 
             if (error) throw error
 
-            const updated = subscriptions.map(sub =>
+            setSubscriptions(prev => prev.map(sub =>
                 sub.id === id ? { ...sub, ...updates } : sub
-            )
-            setSubscriptions(updated)
-            localStorage.setItem('juice_subscriptions', JSON.stringify(updated))
+            ))
         } catch (err) {
             console.error('Error updating subscription:', err.message)
+            throw err
         }
     }
 
     const cancelSubscription = (id) => {
-        updateSubscription(id, { status: 'cancelled' })
+        return updateSubscription(id, { status: 'cancelled' })
     }
 
     const toggleTheme = () => {
@@ -279,17 +234,12 @@ export function AppProvider({ children }) {
     }
 
     const value = {
-        user,
-        login,
-        logout,
         juices,
         subscriptionPlans,
         subscriptions,
         addSubscription,
         updateSubscription,
         cancelSubscription,
-        cart,
-        setCart,
         theme,
         toggleTheme,
         loading

@@ -1,19 +1,38 @@
 import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Sun, Moon, Citrus } from 'lucide-react'
+import PropTypes from 'prop-types'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, Sun, Moon, Citrus, LogOut, User } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from './common/Toast'
+import '../styles/Navbar.css'
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
-    const { theme, toggleTheme, user } = useApp()
+    const { theme, toggleTheme } = useApp()
+    const { user, signOut, isAdmin } = useAuth()
+    const { success } = useToast()
     const location = useLocation()
+    const navigate = useNavigate()
 
-    const navLinks = [
-        { path: '/', label: 'Home' },
-        { path: '/subscribe', label: 'Subscribe' },
-        { path: '/dashboard', label: 'My Orders' },
-        { path: '/admin', label: 'Admin' }
-    ]
+    const handleLogout = async () => {
+        await signOut()
+        success('Logged out successfully')
+        navigate('/')
+    }
+
+    const navLinks = user
+        ? [
+              { path: '/', label: 'Home' },
+              { path: '/subscribe', label: 'Subscribe' },
+              { path: '/dashboard', label: 'My Orders' },
+              ...(isAdmin() ? [{ path: '/admin', label: 'Admin' }] : [])
+          ]
+        : [
+              { path: '/', label: 'Home' },
+              { path: '/login', label: 'Login' },
+              { path: '/register', label: 'Sign Up' }
+          ]
 
     const isActive = (path) => location.pathname === path
 
@@ -40,6 +59,14 @@ function Navbar() {
                     </div>
 
                     <div className="navbar-actions">
+                        {user && (
+                            <div className="user-info">
+                                <User size={18} />
+                                <span className="user-name">
+                                    {user.user_metadata?.name || user.email}
+                                </span>
+                            </div>
+                        )}
                         <button
                             className="btn btn-icon"
                             onClick={toggleTheme}
@@ -47,6 +74,15 @@ function Navbar() {
                         >
                             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                         </button>
+                        {user && (
+                            <button
+                                className="btn btn-icon"
+                                onClick={handleLogout}
+                                aria-label="Logout"
+                            >
+                                <LogOut size={20} />
+                            </button>
+                        )}
                         <button
                             className="btn btn-icon hide-desktop"
                             onClick={() => setIsOpen(!isOpen)}
@@ -57,104 +93,10 @@ function Navbar() {
                     </div>
                 </div>
             </div>
-
-            <style>{`
-                .navbar {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    background: var(--bg-glass);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    z-index: var(--z-sticky);
-                    padding: var(--space-4) 0;
-                }
-
-                .navbar-content {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-
-                .navbar-brand {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                }
-
-                .brand-icon {
-                    color: var(--color-primary);
-                }
-
-                .brand-text {
-                    font-family: var(--font-display);
-                    font-size: var(--text-xl);
-                    font-weight: var(--font-bold);
-                    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }
-
-                .navbar-menu {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-1);
-                }
-
-                .nav-link {
-                    padding: var(--space-2) var(--space-4);
-                    font-weight: var(--font-medium);
-                    color: var(--color-gray-600);
-                    border-radius: var(--radius-lg);
-                    transition: all var(--transition-fast);
-                }
-
-                .nav-link:hover {
-                    color: var(--color-primary);
-                    background: rgba(255, 107, 53, 0.1);
-                }
-
-                .nav-link.active {
-                    color: var(--color-primary);
-                    background: rgba(255, 107, 53, 0.15);
-                }
-
-                .navbar-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                }
-
-                @media (max-width: 768px) {
-                    .navbar-menu {
-                        position: fixed;
-                        top: 72px;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        flex-direction: column;
-                        background: var(--bg-primary);
-                        padding: var(--space-4);
-                        transform: translateX(-100%);
-                        transition: transform var(--transition-base);
-                    }
-
-                    .navbar-menu.open {
-                        transform: translateX(0);
-                    }
-
-                    .nav-link {
-                        width: 100%;
-                        padding: var(--space-4);
-                        font-size: var(--text-lg);
-                    }
-                }
-            `}</style>
         </nav>
     )
 }
+
+Navbar.propTypes = {}
 
 export default Navbar
