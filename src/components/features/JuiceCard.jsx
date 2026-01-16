@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import '../styles/JuiceCard.css'
+import '../../styles/JuiceCard.css'
 
 function JuiceCard({ juice, onSelect, selected }) {
     return (

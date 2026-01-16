@@ -3,9 +3,9 @@ import PropTypes from 'prop-types'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Sun, Moon, Citrus, LogOut, User } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from './common/Toast'
-import '../styles/Navbar.css'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../common/Toast'
+import '../../styles/Navbar.css'
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
