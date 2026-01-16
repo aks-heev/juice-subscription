@@ -12,7 +12,7 @@ function Dashboard() {
 
     const getEndDate = (subscription) => {
         const startDate = new Date(subscription.customer.startDate)
-        const days = subscription.plan.id === 'weekly' ? 7 : 30
+        const days = subscription.plan.id.includes('weekly') ? 7 : 30
         return addDays(startDate, days)
     }
 

@@ -64,18 +64,46 @@ const initialJuices = [
 
 const subscriptionPlans = [
     {
-        id: 'weekly',
-        name: 'Weekly Plan',
+        id: 'trial-weekly',
+        name: 'Trial Weekly',
         duration: '7 days',
-        discount: 10,
-        description: 'Perfect for trying out our service'
+        discount: 15,
+        description: 'Try our service risk-free',
+        type: 'single',
+        isTrial: true
     },
     {
-        id: 'monthly',
-        name: 'Monthly Plan',
+        id: 'weekly-single',
+        name: 'Weekly Single Juice',
+        duration: '7 days',
+        discount: 10,
+        description: 'Same juice daily for a week',
+        type: 'single'
+    },
+    {
+        id: 'weekly-variety',
+        name: 'Weekly Variety Pack',
+        duration: '7 days',
+        discount: 12,
+        description: 'Different juices every day',
+        type: 'variety'
+    },
+    {
+        id: 'monthly-single',
+        name: 'Monthly Single Juice',
         duration: '30 days',
         discount: 20,
-        description: 'Our most popular plan'
+        description: 'Your favorite juice for a month',
+        type: 'single'
+    },
+    {
+        id: 'monthly-variety',
+        name: 'Monthly Variety Pack',
+        duration: '30 days',
+        discount: 25,
+        description: 'Maximum variety and savings',
+        type: 'variety',
+        isPopular: true
     }
 ]
 
@@ -128,21 +156,29 @@ export function AppProvider({ children }) {
                         setSubscriptions([])
                     } else {
                         // Map Supabase data to frontend structure
-                        const mappedSubs = (subsData || []).map(s => ({
-                            ...s,
-                            juice: s.juices,
-                            deliveryTime: s.delivery_time,
-                            customer: {
-                                name: s.customer_name,
-                                phone: s.customer_phone,
-                                address: s.customer_address,
-                                startDate: s.start_date
-                            },
-                            plan: {
+                        const mappedSubs = (subsData || []).map(s => {
+                            // Find plan by ID
+                            const planData = subscriptionPlans.find(p => p.id === s.plan_id) || {
                                 id: s.plan_id,
-                                name: s.plan_id === 'weekly' ? 'Weekly Plan' : 'Monthly Plan'
+                                name: s.plan_id
                             }
-                        }))
+                            
+                            return {
+                                ...s,
+                                juice: s.juices,
+                                deliveryTime: s.delivery_time,
+                                customer: {
+                                    name: s.customer_name,
+                                    phone: s.customer_phone,
+                                    address: s.customer_address,
+                                    startDate: s.start_date
+                                },
+                                plan: {
+                                    id: planData.id,
+                                    name: planData.name
+                                }
+                            }
+                        })
                         setSubscriptions(mappedSubs)
                     }
                 } else {
@@ -190,9 +226,10 @@ export function AppProvider({ children }) {
             if (error) throw error
 
             // Map the returned data point for state
+            const planData = subscriptionPlans.find(p => p.id === data.plan_id) || subscription.plan
             const mappedNewSub = {
                 ...data,
-                juice: data.juices,
+                juice: data.juices || subscription.juice,
                 deliveryTime: data.delivery_time,
                 customer: {
                     name: data.customer_name,
@@ -201,8 +238,8 @@ export function AppProvider({ children }) {
                     startDate: data.start_date
                 },
                 plan: {
-                    id: data.plan_id,
-                    name: data.plan_id === 'weekly' ? 'Weekly Plan' : 'Monthly Plan'
+                    id: planData.id,
+                    name: planData.name
                 }
             }
 

@@ -34,12 +34,28 @@ function Subscribe() {
     ]
 
     const calculateTotal = () => {
-        if (!selectedJuice || !selectedPlan) return 0
-        const basePrice = selectedJuice.price * quantity
-        const days = selectedPlan.id === 'weekly' ? 7 : 30
+        if (!selectedPlan) return 0
+        
+        let basePrice
+        if (selectedPlan.type === 'variety') {
+            // For variety plans, calculate average price of all juices
+            const avgPrice = juices.reduce((sum, j) => sum + j.price, 0) / juices.length
+            basePrice = avgPrice * quantity
+        } else {
+            // For single juice plans
+            if (!selectedJuice) return 0
+            basePrice = selectedJuice.price * quantity
+        }
+        
+        const days = selectedPlan.id.includes('weekly') ? 7 : 30
         const subtotal = basePrice * days
         const discount = (subtotal * selectedPlan.discount) / 100
-        return subtotal - discount
+        return Math.round(subtotal - discount)
+    }
+
+    const getSelectedJuicesForVariety = () => {
+        // For variety plans, return all juices
+        return juices
     }
 
     const handleCustomerInfoChange = (e) => {
@@ -81,12 +97,15 @@ function Subscribe() {
         setIsSubmitting(true)
         try {
             const subscription = {
-                juice: selectedJuice,
+                juice: selectedPlan.type === 'variety' 
+                    ? { id: null, name: 'Variety Pack', image: '🍹', price: Math.round(juices.reduce((sum, j) => sum + j.price, 0) / juices.length) }
+                    : selectedJuice,
                 plan: selectedPlan,
                 quantity,
                 deliveryTime,
                 customer: customerInfo,
-                total: calculateTotal()
+                total: calculateTotal(),
+                isVariety: selectedPlan.type === 'variety'
             }
             await addSubscription(subscription)
             success('Subscription created successfully!')
@@ -98,26 +117,129 @@ function Subscribe() {
         }
     }
 
-    const nextStep = () => setStep(step + 1)
-    const prevStep = () => setStep(step - 1)
+    const nextStep = () => {
+        if (step === 1) {
+            // After selecting plan, check if variety
+            if (selectedPlan?.type === 'variety') {
+                setStep(3) // Skip juice selection
+            } else {
+                setStep(2) // Go to juice selection
+            }
+        } else {
+            setStep(step + 1)
+        }
+    }
+    
+    const prevStep = () => {
+        if (step === 3 && selectedPlan?.type === 'variety') {
+            setStep(1) // Go back to plan selection
+        } else {
+            setStep(step - 1)
+        }
+    }
+
+    const getStepLabel = (index) => {
+        const labels = ['Select Plan', 'Choose Juice', 'Delivery', 'Confirm']
+        if (selectedPlan?.type === 'variety' && index === 1) {
+            return 'Variety Pack' // Change label for variety plans
+        }
+        return labels[index]
+    }
+
+    const getStepNumber = () => {
+        // Adjust step display for variety plans
+        if (selectedPlan?.type === 'variety' && step === 3) {
+            return 2 // Show as step 2 (skipping juice selection)
+        }
+        if (selectedPlan?.type === 'variety' && step === 4) {
+            return 3 // Show as step 3
+        }
+        return step
+    }
 
     return (
         <div className="page">
             <div className="container py-8">
                 {/* Progress Steps */}
                 <div className="steps-container">
-                    {['Choose Juice', 'Select Plan', 'Delivery', 'Confirm'].map((label, index) => (
-                        <div key={index} className={`step ${step > index + 1 ? 'completed' : ''} ${step === index + 1 ? 'active' : ''}`}>
-                            <div className="step-number">
-                                {step > index + 1 ? <Check size={16} /> : index + 1}
+                    {['Select Plan', 'Choose Juice', 'Delivery', 'Confirm'].map((label, index) => {
+                        // For variety plans, hide or mark juice selection step as completed
+                        const shouldShow = !(selectedPlan?.type === 'variety' && index === 1)
+                        const isCompleted = step > index + 1 || (selectedPlan?.type === 'variety' && index === 1 && step >= 3)
+                        const isActive = step === index + 1
+                        
+                        if (!shouldShow && step >= 3) {
+                            return null // Hide juice step for variety plans after it's "completed"
+                        }
+                        
+                        return (
+                            <div key={index} className={`step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}>
+                                <div className="step-number">
+                                    {isCompleted ? <Check size={16} /> : index + 1}
+                                </div>
+                                <span className="step-label">
+                                    {selectedPlan?.type === 'variety' && index === 1 ? 'Variety Pack' : label}
+                                </span>
                             </div>
-                            <span className="step-label">{label}</span>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
 
-                {/* Step 1: Choose Juice */}
+                {/* Step 1: Select Plan */}
                 {step === 1 && (
+                    <div className="step-content animate-fade-in">
+                        <h2 className="section-title">Choose Your Plan</h2>
+                        <p className="text-muted mb-6">Select a subscription plan that works for you</p>
+                        <div className="plans-grid">
+                            {subscriptionPlans.map(plan => (
+                                <div
+                                    key={plan.id}
+                                    className={`plan-card card ${selectedPlan?.id === plan.id ? 'selected' : ''}`}
+                                    onClick={() => setSelectedPlan(plan)}
+                                >
+                                    {plan.isPopular && (
+                                        <span className="plan-badge">Most Popular</span>
+                                    )}
+                                    {plan.isTrial && (
+                                        <span className="plan-badge badge-trial">Trial</span>
+                                    )}
+                                    <h3 className="plan-name">{plan.name}</h3>
+                                    <p className="plan-duration">{plan.duration}</p>
+                                    <div className="plan-discount">
+                                        <span className="discount-value">{plan.discount}%</span>
+                                        <span className="discount-label">OFF</span>
+                                    </div>
+                                    <p className="plan-description">{plan.description}</p>
+                                    {plan.type === 'variety' && (
+                                        <span className="badge badge-secondary">🍹 Variety Pack</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        {selectedPlan && (
+                            <div className="quantity-selector">
+                                <label>Quantity per day:</label>
+                                <div className="quantity-controls">
+                                    <button className="btn btn-ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                                    <span className="quantity-value">{quantity}</span>
+                                    <button className="btn btn-ghost" onClick={() => setQuantity(Math.min(5, quantity + 1))}>+</button>
+                                </div>
+                            </div>
+                        )}
+                        <div className="step-actions">
+                            <button
+                                className="btn btn-primary btn-lg"
+                                onClick={nextStep}
+                                disabled={!selectedPlan}
+                            >
+                                Continue <ArrowRight size={20} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: Choose Juice (only for single juice plans) */}
+                {step === 2 && selectedPlan?.type === 'single' && (
                     <div className="step-content animate-fade-in">
                         <h2 className="section-title">Choose Your Juice</h2>
                         <p className="text-muted mb-6">Select your favorite juice for daily delivery</p>
@@ -129,43 +251,6 @@ function Subscribe() {
                                     onSelect={setSelectedJuice}
                                     selected={selectedJuice?.id === juice.id}
                                 />
-                            ))}
-                        </div>
-                        <div className="step-actions">
-                            <button
-                                className="btn btn-primary btn-lg"
-                                onClick={nextStep}
-                                disabled={!selectedJuice}
-                            >
-                                Continue <ArrowRight size={20} />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Step 2: Select Plan */}
-                {step === 2 && (
-                    <div className="step-content animate-fade-in">
-                        <h2 className="section-title">Choose Your Plan</h2>
-                        <p className="text-muted mb-6">Select a subscription plan that works for you</p>
-                        <div className="plans-grid">
-                            {subscriptionPlans.map(plan => (
-                                <div
-                                    key={plan.id}
-                                    className={`plan-card card ${selectedPlan?.id === plan.id ? 'selected' : ''}`}
-                                    onClick={() => setSelectedPlan(plan)}
-                                >
-                                    {plan.id === 'monthly' && (
-                                        <span className="plan-badge">Most Popular</span>
-                                    )}
-                                    <h3 className="plan-name">{plan.name}</h3>
-                                    <p className="plan-duration">{plan.duration}</p>
-                                    <div className="plan-discount">
-                                        <span className="discount-value">{plan.discount}%</span>
-                                        <span className="discount-label">OFF</span>
-                                    </div>
-                                    <p className="plan-description">{plan.description}</p>
-                                </div>
                             ))}
                         </div>
                         <div className="quantity-selector">
@@ -181,7 +266,7 @@ function Subscribe() {
                             <button
                                 className="btn btn-primary btn-lg"
                                 onClick={nextStep}
-                                disabled={!selectedPlan}
+                                disabled={!selectedJuice}
                             >
                                 Continue <ArrowRight size={20} />
                             </button>
@@ -291,14 +376,29 @@ function Subscribe() {
                         <p className="text-muted mb-6">Review your subscription details</p>
                         <div className="order-summary card">
                             <div className="summary-section">
-                                <h4>Juice</h4>
-                                <div className="summary-item">
-                                    <span className="juice-emoji">{selectedJuice?.image}</span>
-                                    <div>
-                                        <strong>{selectedJuice?.name}</strong>
-                                        <p className="text-sm text-muted">₹{selectedJuice?.price} × {quantity} per day</p>
+                                <h4>{selectedPlan?.type === 'variety' ? 'Variety Pack' : 'Juice'}</h4>
+                                {selectedPlan?.type === 'variety' ? (
+                                    <div className="summary-item">
+                                        <span className="juice-emoji">🍹</span>
+                                        <div>
+                                            <strong>Variety Pack</strong>
+                                            <p className="text-sm text-muted">
+                                                All {juices.length} juices included - different flavors daily
+                                            </p>
+                                            <p className="text-sm text-muted">
+                                                {quantity} juice{quantity > 1 ? 's' : ''} per day
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="summary-item">
+                                        <span className="juice-emoji">{selectedJuice?.image}</span>
+                                        <div>
+                                            <strong>{selectedJuice?.name}</strong>
+                                            <p className="text-sm text-muted">₹{selectedJuice?.price} × {quantity} per day</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="summary-section">
                                 <h4>Plan</h4>
@@ -311,6 +411,7 @@ function Subscribe() {
                                 <p className="text-sm text-muted">{customerInfo.phone}</p>
                                 <p className="text-sm text-muted">{customerInfo.address}</p>
                                 <p className="text-sm">Starting: {new Date(customerInfo.startDate).toLocaleDateString()}</p>
+                                <p className="text-sm">Time: {deliveryTimes.find(t => t.id === deliveryTime)?.label}</p>
                             </div>
                             <div className="summary-total">
                                 <span>Total Amount</span>

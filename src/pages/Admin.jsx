@@ -46,7 +46,7 @@ function Admin() {
 
         subscriptions.filter(s => s.status === 'active').forEach(sub => {
             const startDate = parseISO(sub.customer.startDate)
-            const durationDays = sub.plan.id === 'weekly' ? 7 : 30
+            const durationDays = sub.plan.id.includes('weekly') ? 7 : 30
             const endDate = addDays(startDate, durationDays)
 
             next7Days.forEach(day => {
