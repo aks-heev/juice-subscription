@@ -2,10 +2,15 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { useToast } from '../components/common/Toast'
+import { validateName, validatePhone, validateAddress, validateDate } from '../utils/validation'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 import JuiceCard from '../components/JuiceCard'
+import '../styles/Subscribe.css'
 
 function Subscribe() {
     const { juices, subscriptionPlans, addSubscription } = useApp()
+    const { success, error: showError } = useToast()
     const navigate = useNavigate()
 
     const [step, setStep] = useState(1)
@@ -19,6 +24,8 @@ function Subscribe() {
         address: '',
         startDate: ''
     })
+    const [errors, setErrors] = useState({})
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const deliveryTimes = [
         { id: 'morning', label: 'Morning', time: '6:00 AM - 9:00 AM' },
@@ -35,18 +42,60 @@ function Subscribe() {
         return subtotal - discount
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        const subscription = {
-            juice: selectedJuice,
-            plan: selectedPlan,
-            quantity,
-            deliveryTime,
-            customer: customerInfo,
-            total: calculateTotal()
+    const handleCustomerInfoChange = (e) => {
+        const { name, value } = e.target
+        setCustomerInfo(prev => ({ ...prev, [name]: value }))
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }))
         }
-        addSubscription(subscription)
-        navigate('/dashboard')
+    }
+
+    const validateStep3 = () => {
+        const newErrors = {}
+
+        const nameError = validateName(customerInfo.name)
+        if (nameError) newErrors.name = nameError
+
+        const phoneError = validatePhone(customerInfo.phone)
+        if (phoneError) newErrors.phone = phoneError
+
+        const addressError = validateAddress(customerInfo.address)
+        if (addressError) newErrors.address = addressError
+
+        const dateError = validateDate(customerInfo.startDate, 'Start date')
+        if (dateError) newErrors.startDate = dateError
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        if (!validateStep3()) {
+            showError('Please fix the errors before submitting')
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            const subscription = {
+                juice: selectedJuice,
+                plan: selectedPlan,
+                quantity,
+                deliveryTime,
+                customer: customerInfo,
+                total: calculateTotal()
+            }
+            await addSubscription(subscription)
+            success('Subscription created successfully!')
+            navigate('/dashboard')
+        } catch (err) {
+            showError(err.message || 'Failed to create subscription. Please try again.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const nextStep = () => setStep(step + 1)
@@ -147,47 +196,63 @@ function Subscribe() {
                         <p className="text-muted mb-6">Tell us where and when to deliver</p>
                         <form className="delivery-form">
                             <div className="form-group">
-                                <label className="form-label">Full Name</label>
+                                <label htmlFor="name" className="form-label">Full Name</label>
                                 <input
                                     type="text"
-                                    className="form-input"
+                                    id="name"
+                                    name="name"
+                                    className={`form-input ${errors.name ? 'form-input-error' : ''}`}
                                     value={customerInfo.name}
-                                    onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+                                    onChange={handleCustomerInfoChange}
                                     placeholder="Enter your name"
-                                    required
                                 />
+                                {errors.name && (
+                                    <span className="form-error">{errors.name}</span>
+                                )}
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Phone Number</label>
+                                <label htmlFor="phone" className="form-label">Phone Number</label>
                                 <input
                                     type="tel"
-                                    className="form-input"
+                                    id="phone"
+                                    name="phone"
+                                    className={`form-input ${errors.phone ? 'form-input-error' : ''}`}
                                     value={customerInfo.phone}
-                                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                                    placeholder="Enter your phone number"
-                                    required
+                                    onChange={handleCustomerInfoChange}
+                                    placeholder="10-digit mobile number"
                                 />
+                                {errors.phone && (
+                                    <span className="form-error">{errors.phone}</span>
+                                )}
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Delivery Address</label>
+                                <label htmlFor="address" className="form-label">Delivery Address</label>
                                 <textarea
-                                    className="form-input form-textarea"
+                                    id="address"
+                                    name="address"
+                                    className={`form-input form-textarea ${errors.address ? 'form-input-error' : ''}`}
                                     value={customerInfo.address}
-                                    onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
+                                    onChange={handleCustomerInfoChange}
                                     placeholder="Enter your full address"
-                                    required
                                 />
+                                {errors.address && (
+                                    <span className="form-error">{errors.address}</span>
+                                )}
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Start Date</label>
+                                <label htmlFor="startDate" className="form-label">Start Date</label>
                                 <input
                                     type="date"
-                                    className="form-input"
+                                    id="startDate"
+                                    name="startDate"
+                                    className={`form-input ${errors.startDate ? 'form-input-error' : ''}`}
                                     value={customerInfo.startDate}
-                                    onChange={(e) => setCustomerInfo({ ...customerInfo, startDate: e.target.value })}
+                                    onChange={handleCustomerInfoChange}
                                     min={new Date().toISOString().split('T')[0]}
-                                    required
                                 />
+                                {errors.startDate && (
+                                    <span className="form-error">{errors.startDate}</span>
+                                )}
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Preferred Delivery Time</label>
@@ -253,262 +318,24 @@ function Subscribe() {
                             </div>
                         </div>
                         <div className="step-actions">
-                            <button className="btn btn-ghost btn-lg" onClick={prevStep}>Back</button>
-                            <button className="btn btn-success btn-lg" onClick={handleSubmit}>
-                                <Check size={20} /> Confirm Subscription
+                            <button className="btn btn-ghost btn-lg" onClick={prevStep} disabled={isSubmitting}>Back</button>
+                            <button 
+                                className="btn btn-success btn-lg" 
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <LoadingSpinner size="small" />
+                                ) : (
+                                    <>
+                                        <Check size={20} /> Confirm Subscription
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-
-            <style>{`
-                .steps-container {
-                    display: flex;
-                    justify-content: center;
-                    gap: var(--space-8);
-                    margin-bottom: var(--space-12);
-                }
-
-                .step {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    opacity: 0.5;
-                }
-
-                .step.active, .step.completed {
-                    opacity: 1;
-                }
-
-                .step-number {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: var(--radius-full);
-                    background: var(--color-gray-200);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: var(--font-semibold);
-                    font-size: var(--text-sm);
-                }
-
-                .step.active .step-number {
-                    background: var(--color-primary);
-                    color: white;
-                }
-
-                .step.completed .step-number {
-                    background: var(--color-success);
-                    color: white;
-                }
-
-                .step-label {
-                    font-weight: var(--font-medium);
-                    font-size: var(--text-sm);
-                }
-
-                .step-content {
-                    max-width: 900px;
-                    margin: 0 auto;
-                }
-
-                .juices-select-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: var(--space-4);
-                    margin-bottom: var(--space-8);
-                }
-
-                .plans-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: var(--space-6);
-                    margin-bottom: var(--space-6);
-                }
-
-                .plan-card {
-                    padding: var(--space-6);
-                    text-align: center;
-                    cursor: pointer;
-                    position: relative;
-                    border: 2px solid transparent;
-                }
-
-                .plan-card.selected {
-                    border-color: var(--color-primary);
-                }
-
-                .plan-badge {
-                    position: absolute;
-                    top: -12px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: var(--color-primary);
-                    color: white;
-                    padding: var(--space-1) var(--space-3);
-                    border-radius: var(--radius-full);
-                    font-size: var(--text-xs);
-                    font-weight: var(--font-semibold);
-                }
-
-                .plan-name {
-                    font-size: var(--text-xl);
-                    margin-bottom: var(--space-1);
-                }
-
-                .plan-duration {
-                    color: var(--color-gray-500);
-                    font-size: var(--text-sm);
-                }
-
-                .plan-discount {
-                    margin: var(--space-4) 0;
-                }
-
-                .discount-value {
-                    font-family: var(--font-display);
-                    font-size: var(--text-4xl);
-                    font-weight: var(--font-bold);
-                    color: var(--color-primary);
-                }
-
-                .discount-label {
-                    font-size: var(--text-lg);
-                    color: var(--color-primary);
-                    margin-left: var(--space-1);
-                }
-
-                .quantity-selector {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: var(--space-4);
-                    margin-bottom: var(--space-8);
-                }
-
-                .quantity-controls {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-2);
-                    background: var(--color-gray-100);
-                    padding: var(--space-1);
-                    border-radius: var(--radius-lg);
-                }
-
-                .quantity-value {
-                    width: 40px;
-                    text-align: center;
-                    font-weight: var(--font-bold);
-                }
-
-                .time-slots {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: var(--space-4);
-                }
-
-                .time-slot {
-                    padding: var(--space-4);
-                    border: 2px solid var(--color-gray-200);
-                    border-radius: var(--radius-lg);
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all var(--transition-fast);
-                }
-
-                .time-slot:hover {
-                    border-color: var(--color-primary);
-                }
-
-                .time-slot.selected {
-                    border-color: var(--color-primary);
-                    background: rgba(255, 107, 53, 0.05);
-                }
-
-                .time-label {
-                    display: block;
-                    font-weight: var(--font-semibold);
-                    margin: var(--space-2) 0;
-                }
-
-                .time-range {
-                    font-size: var(--text-xs);
-                    color: var(--color-gray-500);
-                }
-
-                .delivery-form {
-                    max-width: 500px;
-                    margin: 0 auto var(--space-8);
-                }
-
-                .order-summary {
-                    padding: var(--space-6);
-                    max-width: 500px;
-                    margin: 0 auto var(--space-8);
-                }
-
-                .summary-section {
-                    padding: var(--space-4) 0;
-                    border-bottom: 1px solid var(--color-gray-200);
-                }
-
-                .summary-section h4 {
-                    font-size: var(--text-sm);
-                    color: var(--color-gray-500);
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    margin-bottom: var(--space-2);
-                }
-
-                .summary-item {
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-3);
-                }
-
-                .summary-item .juice-emoji {
-                    font-size: 32px;
-                }
-
-                .summary-total {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding-top: var(--space-4);
-                    font-size: var(--text-lg);
-                }
-
-                .total-price {
-                    font-family: var(--font-display);
-                    font-size: var(--text-2xl);
-                    color: var(--color-primary);
-                }
-
-                .step-actions {
-                    display: flex;
-                    justify-content: center;
-                    gap: var(--space-4);
-                }
-
-                @media (max-width: 768px) {
-                    .steps-container {
-                        gap: var(--space-2);
-                    }
-                    .step-label {
-                        display: none;
-                    }
-                    .juices-select-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .plans-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .time-slots {
-                        grid-template-columns: 1fr;
-                    }
-                }
-            `}</style>
         </div>
     )
 }

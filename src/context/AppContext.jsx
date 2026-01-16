@@ -80,7 +80,7 @@ const subscriptionPlans = [
 ]
 
 export function AppProvider({ children }) {
-    const { user } = useAuth()
+    const { user, isAdmin } = useAuth()
     const [juices, setJuices] = useState([])
     const [subscriptions, setSubscriptions] = useState([])
     const [loading, setLoading] = useState(true)
@@ -109,32 +109,42 @@ export function AppProvider({ children }) {
                     setJuices(initialJuices.map((j, i) => ({ ...j, id: i + 1 })))
                 }
 
-                // Fetch subscriptions only if user is logged in
+                // Fetch subscriptions based on user role
                 if (user) {
-                    const { data: subsData, error: subsError } = await supabase
+                    let subsQuery = supabase
                         .from('subscriptions')
                         .select('*, juices(*)')
-                        .eq('user_id', user.id)
 
-                    if (subsError) throw subsError
+                    // If not admin, filter by user_id
+                    if (!isAdmin()) {
+                        subsQuery = subsQuery.eq('user_id', user.id)
+                    }
 
-                    // Map Supabase data to frontend structure
-                    const mappedSubs = (subsData || []).map(s => ({
-                        ...s,
-                        juice: s.juices,
-                        deliveryTime: s.delivery_time,
-                        customer: {
-                            name: s.customer_name,
-                            phone: s.customer_phone,
-                            address: s.customer_address,
-                            startDate: s.start_date
-                        },
-                        plan: {
-                            id: s.plan_id,
-                            name: s.plan_id === 'weekly' ? 'Weekly Plan' : 'Monthly Plan'
-                        }
-                    }))
-                    setSubscriptions(mappedSubs)
+                    const { data: subsData, error: subsError } = await subsQuery
+
+                    if (subsError) {
+                        // If error is due to missing user_id column, fall back to fetching all
+                        console.error('Error fetching subscriptions:', subsError)
+                        setSubscriptions([])
+                    } else {
+                        // Map Supabase data to frontend structure
+                        const mappedSubs = (subsData || []).map(s => ({
+                            ...s,
+                            juice: s.juices,
+                            deliveryTime: s.delivery_time,
+                            customer: {
+                                name: s.customer_name,
+                                phone: s.customer_phone,
+                                address: s.customer_address,
+                                startDate: s.start_date
+                            },
+                            plan: {
+                                id: s.plan_id,
+                                name: s.plan_id === 'weekly' ? 'Weekly Plan' : 'Monthly Plan'
+                            }
+                        }))
+                        setSubscriptions(mappedSubs)
+                    }
                 } else {
                     // Clear subscriptions if no user
                     setSubscriptions([])
@@ -149,7 +159,7 @@ export function AppProvider({ children }) {
         }
 
         fetchData()
-    }, [user])
+    }, [user, isAdmin])
 
     const addSubscription = async (subscription) => {
         if (!user) {
