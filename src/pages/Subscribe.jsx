@@ -175,6 +175,7 @@ function Subscribe() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+
         if (!validateStep3()) {
             showError('Please fix the errors before submitting')
             return

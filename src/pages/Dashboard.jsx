@@ -62,9 +62,9 @@ function Dashboard() {
                                 <div key={subscription.id} className="subscription-card card">
                                     <div className="subscription-header">
                                         <div className="subscription-juice">
-                                            <span className="juice-emoji">{subscription.juice.image}</span>
+                                            <span className="juice-emoji">{subscription.juice?.image || '🍹'}</span>
                                             <div>
-                                                <h3>{subscription.juice.name}</h3>
+                                                <h3>{subscription.juice?.name || 'Variety Pack'}</h3>
                                                 <span className="badge badge-success">Active</span>
                                             </div>
                                         </div>
@@ -118,9 +118,9 @@ function Dashboard() {
                                 <div key={subscription.id} className="subscription-card card past">
                                     <div className="subscription-header">
                                         <div className="subscription-juice">
-                                            <span className="juice-emoji">{subscription.juice.image}</span>
+                                            <span className="juice-emoji">{subscription.juice?.image || '🍹'}</span>
                                             <div>
-                                                <h3>{subscription.juice.name}</h3>
+                                                <h3>{subscription.juice?.name || 'Variety Pack'}</h3>
                                                 <span className="badge badge-error">Cancelled</span>
                                             </div>
                                         </div>

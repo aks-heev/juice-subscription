@@ -98,7 +98,8 @@ export function AuthProvider({ children }) {
     }
 
     const isAdmin = () => {
-        return user?.user_metadata?.role === 'admin'
+    const role = user?.user_metadata?.role || user?.app_metadata?.role
+    return role === 'admin'
     }
 
     const value = {

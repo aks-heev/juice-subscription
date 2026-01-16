@@ -25,7 +25,7 @@ function Admin() {
         const matchesSearch =
             sub.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             sub.customer.phone.includes(searchTerm) ||
-            sub.juice.name.toLowerCase().includes(searchTerm.toLowerCase())
+            (sub.juice?.name || 'Variety Pack').toLowerCase().includes(searchTerm.toLowerCase())
 
         const matchesStatus = statusFilter === 'all' || sub.status === statusFilter
 
@@ -35,8 +35,9 @@ function Admin() {
     // Juice popularity
     const juicePopularity = juices.map(juice => ({
         ...juice,
-        count: subscriptions.filter(s => s.juice.id === juice.id).length
+        count: subscriptions.filter(s => s.juice?.id === juice.id).length
     })).sort((a, b) => b.count - a.count)
+
 
     // Calculate Upcoming Deliveries (Next 7 days)
     const generateUpcomingDeliveries = () => {
@@ -122,8 +123,8 @@ function Admin() {
                                         <div className="delivery-main">
                                             <div className="delivery-info">
                                                 <div className="delivery-juice">
-                                                    <span className="juice-emoji">{delivery.subscription.juice.image}</span>
-                                                    <strong>{delivery.subscription.juice.name}</strong>
+                                                    <span className="juice-emoji">{delivery.subscription.juice?.image || '🍹'}</span>
+                                                    <strong>{delivery.subscription.juice?.name || 'Variety Pack'}</strong> 
                                                 </div>
                                                 <div className="delivery-customer">
                                                     <Users size={14} />
@@ -214,8 +215,8 @@ function Admin() {
                                                 </td>
                                                 <td>
                                                     <div className="juice-cell">
-                                                        <span className="juice-emoji">{subscription.juice.image}</span>
-                                                        {subscription.juice.name}
+                                                        <span className="juice-emoji">{subscription.juice?.image || '🍹'}</span>
+                                                        {subscription.juice?.name || 'Variety Pack'}
                                                     </div>
                                                 </td>
                                                 <td>{subscription.plan.name}</td>
