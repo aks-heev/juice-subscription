@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Leaf, Zap, Shield, Droplets, Star } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import JuiceCard from '../components/JuiceCard'
+import JuiceCard from '../components/features/JuiceCard'
 
 function Home() {
     const { juices } = useApp()

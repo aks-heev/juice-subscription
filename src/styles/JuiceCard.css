@@ -1,0 +1,81 @@
+.juice-card {
+    transition: all var(--transition-base);
+    cursor: default;
+}
+
+.juice-card.clickable {
+    cursor: pointer;
+}
+
+.juice-card.selected {
+    border: 2px solid var(--color-primary);
+    transform: scale(1.02);
+}
+
+.juice-card-image {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.juice-card-image.detox-bg {
+    background: rgba(124, 181, 24, 0.08);
+}
+
+.juice-card-image.energy-bg {
+    background: rgba(255, 107, 53, 0.08);
+}
+
+.juice-card-image.immunity-bg {
+    background: rgba(255, 182, 39, 0.08);
+}
+
+.juice-card-image.refresh-bg {
+    background: rgba(46, 196, 182, 0.08);
+}
+
+.juice-card-image.protein-bg {
+    background: rgba(155, 93, 229, 0.08);
+}
+
+.juice-emoji {
+    font-size: 64px;
+}
+
+.juice-card-body {
+    padding: var(--space-4);
+}
+
+.juice-name {
+    font-size: var(--text-lg);
+    margin: var(--space-2) 0;
+}
+
+.juice-description {
+    font-size: var(--text-sm);
+    color: var(--color-gray-500);
+    margin-bottom: var(--space-3);
+    line-height: 1.5;
+}
+
+.juice-meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--color-gray-400);
+    margin-bottom: var(--space-4);
+}
+
+.juice-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.juice-price {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--color-primary);
+}

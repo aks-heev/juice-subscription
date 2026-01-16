@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext'
 import { useToast } from '../components/common/Toast'
 import { validateName, validatePhone, validateAddress, validateDate } from '../utils/validation'
 import LoadingSpinner from '../components/common/LoadingSpinner'
-import JuiceCard from '../components/JuiceCard'
+import JuiceCard from '../components/features/JuiceCard'
 import '../styles/Subscribe.css'
 
 function Subscribe() {
