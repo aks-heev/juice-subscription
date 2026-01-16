@@ -1,15 +1,18 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, ArrowRight, Calendar, Clock } from 'lucide-react'
+import { Check, ArrowRight, Calendar, Clock, Plus } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/common/Toast'
 import { validateName, validatePhone, validateAddress, validateDate } from '../utils/validation'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import JuiceCard from '../components/features/JuiceCard'
+import { supabase } from '../lib/supabase'
 import '../styles/Subscribe.css'
 
 function Subscribe() {
     const { juices, subscriptionPlans, addSubscription } = useApp()
+    const { user } = useAuth()
     const { success, error: showError } = useToast()
     const navigate = useNavigate()
 
@@ -24,6 +27,9 @@ function Subscribe() {
         address: '',
         startDate: ''
     })
+    const [savedAddresses, setSavedAddresses] = useState([])
+    const [selectedAddressId, setSelectedAddressId] = useState(null)
+    const [showNewAddressForm, setShowNewAddressForm] = useState(true)
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -33,16 +39,86 @@ function Subscribe() {
         { id: 'evening', label: 'Evening', time: '5:00 PM - 8:00 PM' }
     ]
 
+    // Load saved addresses on component mount
+    useEffect(() => {
+        const loadSavedAddresses = async () => {
+            try {
+                if (user) {
+                    // For authenticated users, fetch from Supabase
+                    const { data, error } = await supabase
+                        .from('subscriptions')
+                        .select('id, customer_name, customer_phone, customer_address, created_at')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+
+                    if (!error && data && data.length > 0) {
+                        // Extract unique addresses
+                        const uniqueAddresses = []
+                        const seenAddresses = new Set()
+
+                        data.forEach(sub => {
+                            const key = `${sub.customer_name}_${sub.customer_phone}_${sub.customer_address}`
+                            if (!seenAddresses.has(key)) {
+                                seenAddresses.add(key)
+                                uniqueAddresses.push({
+                                    id: sub.id,
+                                    name: sub.customer_name,
+                                    phone: sub.customer_phone,
+                                    address: sub.customer_address,
+                                    createdAt: sub.created_at
+                                })
+                            }
+                        })
+
+                        setSavedAddresses(uniqueAddresses)
+                        if (uniqueAddresses.length > 0) {
+                            setSelectedAddressId(uniqueAddresses[0].id)
+                            setShowNewAddressForm(false)
+                        }
+                    }
+                } else {
+                    // For guest users, load from localStorage
+                    const savedAddressesStorage = localStorage.getItem('savedAddresses')
+                    if (savedAddressesStorage) {
+                        const addresses = JSON.parse(savedAddressesStorage)
+                        setSavedAddresses(addresses)
+                        if (addresses.length > 0) {
+                            setSelectedAddressId(addresses[0].id)
+                            setShowNewAddressForm(false)
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading saved addresses:', err.message)
+            }
+        }
+
+        loadSavedAddresses()
+    }, [user])
+
+    // Update form when selected address changes
+    useEffect(() => {
+        if (selectedAddressId && !showNewAddressForm) {
+            const selected = savedAddresses.find(addr => addr.id === selectedAddressId)
+            if (selected) {
+                setCustomerInfo(prev => ({
+                    ...prev,
+                    name: selected.name,
+                    phone: selected.phone,
+                    address: selected.address
+                }))
+            }
+        }
+    }, [selectedAddressId, showNewAddressForm, savedAddresses])
+
     const calculateTotal = () => {
         if (!selectedPlan) return 0
         
         let basePrice
         if (selectedPlan.type === 'variety') {
-            // For variety plans, calculate average price of all juices
             const avgPrice = juices.reduce((sum, j) => sum + j.price, 0) / juices.length
             basePrice = avgPrice * quantity
         } else {
-            // For single juice plans
             if (!selectedJuice) return 0
             basePrice = selectedJuice.price * quantity
         }
@@ -53,15 +129,9 @@ function Subscribe() {
         return Math.round(subtotal - discount)
     }
 
-    const getSelectedJuicesForVariety = () => {
-        // For variety plans, return all juices
-        return juices
-    }
-
     const handleCustomerInfoChange = (e) => {
         const { name, value } = e.target
         setCustomerInfo(prev => ({ ...prev, [name]: value }))
-        // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }))
         }
@@ -86,6 +156,22 @@ function Subscribe() {
         return Object.keys(newErrors).length === 0
     }
 
+    const handleSelectAddress = (addressId) => {
+        setSelectedAddressId(addressId)
+        setShowNewAddressForm(false)
+    }
+
+    const handleAddNewAddress = () => {
+        setShowNewAddressForm(true)
+        setSelectedAddressId(null)
+        setCustomerInfo({
+            name: '',
+            phone: '',
+            address: '',
+            startDate: customerInfo.startDate
+        })
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -108,6 +194,27 @@ function Subscribe() {
                 isVariety: selectedPlan.type === 'variety'
             }
             await addSubscription(subscription)
+            
+            // Save/update address for guest users
+            if (!user) {
+                const newAddress = {
+                    id: Date.now().toString(),
+                    name: customerInfo.name,
+                    phone: customerInfo.phone,
+                    address: customerInfo.address
+                }
+
+                let addresses = JSON.parse(localStorage.getItem('savedAddresses') || '[]')
+                // Check if address already exists
+                const exists = addresses.some(
+                    addr => addr.address === newAddress.address && addr.phone === newAddress.phone
+                )
+                if (!exists) {
+                    addresses.unshift(newAddress)
+                    localStorage.setItem('savedAddresses', JSON.stringify(addresses))
+                }
+            }
+            
             success('Subscription created successfully!')
             navigate('/dashboard')
         } catch (err) {
@@ -119,11 +226,10 @@ function Subscribe() {
 
     const nextStep = () => {
         if (step === 1) {
-            // After selecting plan, check if variety
             if (selectedPlan?.type === 'variety') {
-                setStep(3) // Skip juice selection
+                setStep(3)
             } else {
-                setStep(2) // Go to juice selection
+                setStep(2)
             }
         } else {
             setStep(step + 1)
@@ -132,29 +238,10 @@ function Subscribe() {
     
     const prevStep = () => {
         if (step === 3 && selectedPlan?.type === 'variety') {
-            setStep(1) // Go back to plan selection
+            setStep(1)
         } else {
             setStep(step - 1)
         }
-    }
-
-    const getStepLabel = (index) => {
-        const labels = ['Select Plan', 'Choose Juice', 'Delivery', 'Confirm']
-        if (selectedPlan?.type === 'variety' && index === 1) {
-            return 'Variety Pack' // Change label for variety plans
-        }
-        return labels[index]
-    }
-
-    const getStepNumber = () => {
-        // Adjust step display for variety plans
-        if (selectedPlan?.type === 'variety' && step === 3) {
-            return 2 // Show as step 2 (skipping juice selection)
-        }
-        if (selectedPlan?.type === 'variety' && step === 4) {
-            return 3 // Show as step 3
-        }
-        return step
     }
 
     return (
@@ -163,13 +250,12 @@ function Subscribe() {
                 {/* Progress Steps */}
                 <div className="steps-container">
                     {['Select Plan', 'Choose Juice', 'Delivery', 'Confirm'].map((label, index) => {
-                        // For variety plans, hide or mark juice selection step as completed
                         const shouldShow = !(selectedPlan?.type === 'variety' && index === 1)
                         const isCompleted = step > index + 1 || (selectedPlan?.type === 'variety' && index === 1 && step >= 3)
                         const isActive = step === index + 1
                         
                         if (!shouldShow && step >= 3) {
-                            return null // Hide juice step for variety plans after it's "completed"
+                            return null
                         }
                         
                         return (
@@ -238,7 +324,7 @@ function Subscribe() {
                     </div>
                 )}
 
-                {/* Step 2: Choose Juice (only for single juice plans) */}
+                {/* Step 2: Choose Juice */}
                 {step === 2 && selectedPlan?.type === 'single' && (
                     <div className="step-content animate-fade-in">
                         <h2 className="section-title">Choose Your Juice</h2>
@@ -279,83 +365,142 @@ function Subscribe() {
                     <div className="step-content animate-fade-in">
                         <h2 className="section-title">Delivery Details</h2>
                         <p className="text-muted mb-6">Tell us where and when to deliver</p>
-                        <form className="delivery-form">
-                            <div className="form-group">
-                                <label htmlFor="name" className="form-label">Full Name</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    className={`form-input ${errors.name ? 'form-input-error' : ''}`}
-                                    value={customerInfo.name}
-                                    onChange={handleCustomerInfoChange}
-                                    placeholder="Enter your name"
-                                />
-                                {errors.name && (
-                                    <span className="form-error">{errors.name}</span>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="phone" className="form-label">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    className={`form-input ${errors.phone ? 'form-input-error' : ''}`}
-                                    value={customerInfo.phone}
-                                    onChange={handleCustomerInfoChange}
-                                    placeholder="10-digit mobile number"
-                                />
-                                {errors.phone && (
-                                    <span className="form-error">{errors.phone}</span>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="address" className="form-label">Delivery Address</label>
-                                <textarea
-                                    id="address"
-                                    name="address"
-                                    className={`form-input form-textarea ${errors.address ? 'form-input-error' : ''}`}
-                                    value={customerInfo.address}
-                                    onChange={handleCustomerInfoChange}
-                                    placeholder="Enter your full address"
-                                />
-                                {errors.address && (
-                                    <span className="form-error">{errors.address}</span>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="startDate" className="form-label">Start Date</label>
-                                <input
-                                    type="date"
-                                    id="startDate"
-                                    name="startDate"
-                                    className={`form-input ${errors.startDate ? 'form-input-error' : ''}`}
-                                    value={customerInfo.startDate}
-                                    onChange={handleCustomerInfoChange}
-                                    min={new Date().toISOString().split('T')[0]}
-                                />
-                                {errors.startDate && (
-                                    <span className="form-error">{errors.startDate}</span>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Preferred Delivery Time</label>
-                                <div className="time-slots">
-                                    {deliveryTimes.map(time => (
+
+                        {/* Saved Addresses Section */}
+                        {savedAddresses.length > 0 && !showNewAddressForm && (
+                            <div className="saved-addresses-section mb-8">
+                                <h3 className="subsection-title mb-4">Select Saved Address</h3>
+                                <div className="saved-addresses-list">
+                                    {savedAddresses.map(addr => (
                                         <div
-                                            key={time.id}
-                                            className={`time-slot ${deliveryTime === time.id ? 'selected' : ''}`}
-                                            onClick={() => setDeliveryTime(time.id)}
+                                            key={addr.id}
+                                            className={`address-card ${selectedAddressId === addr.id ? 'selected' : ''}`}
+                                            onClick={() => handleSelectAddress(addr.id)}
                                         >
-                                            <Clock size={20} />
-                                            <span className="time-label">{time.label}</span>
-                                            <span className="time-range">{time.time}</span>
+                                            <div className="address-radio">
+                                                <input
+                                                    type="radio"
+                                                    name="address"
+                                                    checked={selectedAddressId === addr.id}
+                                                    onChange={() => handleSelectAddress(addr.id)}
+                                                />
+                                            </div>
+                                            <div className="address-details">
+                                                <p className="address-name"><strong>{addr.name}</strong></p>
+                                                <p className="address-phone">{addr.phone}</p>
+                                                <p className="address-text">{addr.address}</p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary mt-4 w-full"
+                                    onClick={handleAddNewAddress}
+                                >
+                                    <Plus size={18} /> Add New Address
+                                </button>
                             </div>
-                        </form>
+                        )}
+
+                        {/* New Address Form */}
+                        {showNewAddressForm && (
+                            <>
+                                <form className="delivery-form">
+                                    <div className="form-group">
+                                        <label htmlFor="name" className="form-label">Full Name</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            className={`form-input ${errors.name ? 'form-input-error' : ''}`}
+                                            value={customerInfo.name}
+                                            onChange={handleCustomerInfoChange}
+                                            placeholder="Enter your name"
+                                        />
+                                        {errors.name && (
+                                            <span className="form-error">{errors.name}</span>
+                                        )}
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="phone" className="form-label">Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            id="phone"
+                                            name="phone"
+                                            className={`form-input ${errors.phone ? 'form-input-error' : ''}`}
+                                            value={customerInfo.phone}
+                                            onChange={handleCustomerInfoChange}
+                                            placeholder="10-digit mobile number"
+                                        />
+                                        {errors.phone && (
+                                            <span className="form-error">{errors.phone}</span>
+                                        )}
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="address" className="form-label">Delivery Address</label>
+                                        <textarea
+                                            id="address"
+                                            name="address"
+                                            className={`form-input form-textarea ${errors.address ? 'form-input-error' : ''}`}
+                                            value={customerInfo.address}
+                                            onChange={handleCustomerInfoChange}
+                                            placeholder="Enter your full address"
+                                        />
+                                        {errors.address && (
+                                            <span className="form-error">{errors.address}</span>
+                                        )}
+                                    </div>
+                                </form>
+
+                                {savedAddresses.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost w-full mb-6"
+                                        onClick={() => {
+                                            setShowNewAddressForm(false)
+                                            setSelectedAddressId(savedAddresses[0].id)
+                                        }}
+                                    >
+                                        Cancel - Use Saved Address
+                                    </button>
+                                )}
+                            </>
+                        )}
+
+                        {/* Date and Time (Always visible) */}
+                        <div className="form-group">
+                            <label htmlFor="startDate" className="form-label">Start Date</label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                name="startDate"
+                                className={`form-input ${errors.startDate ? 'form-input-error' : ''}`}
+                                value={customerInfo.startDate}
+                                onChange={handleCustomerInfoChange}
+                                min={new Date().toISOString().split('T')[0]}
+                            />
+                            {errors.startDate && (
+                                <span className="form-error">{errors.startDate}</span>
+                            )}
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Preferred Delivery Time</label>
+                            <div className="time-slots">
+                                {deliveryTimes.map(time => (
+                                    <div
+                                        key={time.id}
+                                        className={`time-slot ${deliveryTime === time.id ? 'selected' : ''}`}
+                                        onClick={() => setDeliveryTime(time.id)}
+                                    >
+                                        <Clock size={20} />
+                                        <span className="time-label">{time.label}</span>
+                                        <span className="time-range">{time.time}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="step-actions">
                             <button className="btn btn-ghost btn-lg" onClick={prevStep}>Back</button>
                             <button
