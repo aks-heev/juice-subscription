@@ -18,7 +18,7 @@ function Navbar() {
     const handleLogout = async () => {
         await signOut()
         success('Logged out successfully')
-        navigate('/')
+        navigate('/phone-auth')
     }
 
     const navLinks = user
@@ -31,8 +31,7 @@ function Navbar() {
           ]
         : [
               { path: '/', label: 'Home' },
-              { path: '/login', label: 'Login' },
-              { path: '/register', label: 'Sign Up' }
+              { path: '/phone-auth', label: 'Login' }
           ]
 
     const isActive = (path) => location.pathname === path
@@ -64,7 +63,7 @@ function Navbar() {
                             <div className="user-info">
                                 <User size={18} />
                                 <span className="user-name">
-                                    {user.user_metadata?.name || user.email}
+                                    {user.user_metadata?.name || user.phone || user.email}
                                 </span>
                             </div>
                         )}

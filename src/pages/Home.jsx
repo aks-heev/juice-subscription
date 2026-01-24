@@ -47,7 +47,7 @@ function Home() {
                         </div>
 
                         <div className="hero-cta">
-                            <Link to={user ? "/subscribe" : "/register"} className="btn btn-primary btn-cta">
+                            <Link to={user ? "/subscribe" : "/phone-auth"} className="btn btn-primary btn-cta">
                                 {user ? "Start Subscription" : "Get Started"} <ArrowRight size={18} />
                             </Link>
                         </div>

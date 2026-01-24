@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { User, Phone, MapPin, Mail, Edit2, Save, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { User, Phone, MapPin, Mail, Edit2, Save, X, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/common/Toast'
 import { supabase } from '../lib/supabase'
 import { validateName, validatePhone, validateAddress } from '../utils/validation'
 
 function Profile() {
-    const { user, updateProfile } = useAuth()
+    const { user, updateProfile, signOut } = useAuth()
     const { success, error: showError } = useToast()
+    const navigate = useNavigate()
     const [isEditing, setIsEditing] = useState(false)
     const [savedAddresses, setSavedAddresses] = useState([])
     const [profileData, setProfileData] = useState({
@@ -21,7 +23,7 @@ function Profile() {
         if (user) {
             setProfileData({
                 name: user.user_metadata?.name || '',
-                phone: user.user_metadata?.phone || '',
+                phone: user.phone || user.user_metadata?.phone || '',
                 email: user.email || ''
             })
             loadAddresses()
@@ -30,6 +32,21 @@ function Profile() {
 
     const loadAddresses = async () => {
         try {
+            const allAddresses = []
+            const seenAddresses = new Set()
+
+            // First, add the profile address from user_metadata (signup address)
+            if (user.user_metadata?.address) {
+                allAddresses.push({
+                    name: user.user_metadata?.name || '',
+                    phone: user.phone || user.user_metadata?.phone || '',
+                    address: user.user_metadata.address,
+                    isProfile: true
+                })
+                seenAddresses.add(user.user_metadata.address)
+            }
+
+            // Then fetch addresses from past subscriptions
             const { data, error } = await supabase
                 .from('subscriptions')
                 .select('customer_name, customer_phone, customer_address')
@@ -37,23 +54,19 @@ function Profile() {
                 .order('created_at', { ascending: false })
 
             if (!error && data && data.length > 0) {
-                const uniqueAddresses = []
-                const seenAddresses = new Set()
-
                 data.forEach(sub => {
-                    const key = `${sub.customer_address}`
-                    if (!seenAddresses.has(key)) {
-                        seenAddresses.add(key)
-                        uniqueAddresses.push({
+                    if (!seenAddresses.has(sub.customer_address)) {
+                        seenAddresses.add(sub.customer_address)
+                        allAddresses.push({
                             name: sub.customer_name,
                             phone: sub.customer_phone,
                             address: sub.customer_address
                         })
                     }
                 })
-
-                setSavedAddresses(uniqueAddresses)
             }
+
+            setSavedAddresses(allAddresses)
         } catch (err) {
             console.error('Error loading addresses:', err.message)
         }
@@ -73,8 +86,11 @@ function Profile() {
         const nameError = validateName(profileData.name)
         if (nameError) newErrors.name = nameError
 
-        const phoneError = validatePhone(profileData.phone)
-        if (phoneError) newErrors.phone = phoneError
+        // Only validate phone if user is not phone-authenticated
+        if (!user.phone && profileData.phone) {
+            const phoneError = validatePhone(profileData.phone)
+            if (phoneError) newErrors.phone = phoneError
+        }
 
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
@@ -98,6 +114,16 @@ function Profile() {
         }
     }
 
+    const handleLogout = async () => {
+        try {
+            await signOut()
+            success('Logged out successfully')
+            navigate('/phone-auth')
+        } catch (err) {
+            showError('Failed to logout')
+        }
+    }
+
     return (
         <div className="page">
             <div className="container py-8 pb-24">
@@ -118,7 +144,7 @@ function Profile() {
                             ) : (
                                 <div className="button-group">
                                     <button className="btn btn-ghost btn-sm" onClick={() => {
-                                        setIsEditing(false)
+                                        setIsEditing(falphone || user.se)
                                         setProfileData({
                                             name: user.user_metadata?.name || '',
                                             phone: user.user_metadata?.phone || '',
@@ -161,23 +187,26 @@ function Profile() {
                                     className={`form-input ${errors.phone ? 'form-input-error' : ''}`}
                                     value={profileData.phone}
                                     onChange={handleChange}
-                                    disabled={!isEditing}
+                                    disabled={!isEditing || !!user.phone}
                                 />
+                                {user.phone && <span className="text-sm text-muted">Phone number cannot be changed (used for login)</span>}
                                 {errors.phone && <span className="form-error">{errors.phone}</span>}
                             </div>
 
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <Mail size={16} /> Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    className="form-input"
-                                    value={profileData.email}
-                                    disabled
-                                />
-                                <span className="text-sm text-muted">Email cannot be changed</span>
-                            </div>
+                            {profileData.email && (
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        <Mail size={16} /> Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        className="form-input"
+                                        value={profileData.email}
+                                        disabled
+                                    />
+                                    <span className="text-sm text-muted">Email cannot be changed</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -206,6 +235,22 @@ function Profile() {
                             ))}
                         </div>
                     )}
+                </section>
+
+                {/* Logout Section */}
+                <section className="profile-section">
+                    <div className="card logout-card">
+                        <div className="logout-content">
+                            <div>
+                                <h3 className="logout-title">Sign Out</h3>
+                                <p className="logout-subtitle">You can sign back in anytime with your phone number</p>
+                            </div>
+                            <button className="btn btn-danger" onClick={handleLogout}>
+                                <LogOut size={18} />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
                 </section>
             </div>
 
@@ -338,6 +383,60 @@ function Profile() {
                 @media (min-width: 768px) {
                     .card {
                         padding: var(--space-8);
+                    }
+                }
+
+                .logout-card {
+                    border: 1px solid var(--color-gray-200);
+                }
+
+                .logout-content {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: var(--space-4);
+                }
+
+                .logout-title {
+                    font-size: var(--text-base);
+                    font-weight: var(--font-semibold);
+                    color: var(--text-primary);
+                    margin-bottom: var(--space-1);
+                }
+
+                .logout-subtitle {
+                    font-size: var(--text-sm);
+                    color: var(--color-gray-600);
+                }
+
+                .btn-danger {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    background: #dc2626;
+                    color: white;
+                    border: none;
+                    padding: var(--space-3) var(--space-4);
+                    border-radius: var(--radius-lg);
+                    font-weight: var(--font-medium);
+                    cursor: pointer;
+                    transition: all var(--transition-fast);
+                    white-space: nowrap;
+                }
+
+                .btn-danger:hover {
+                    background: #b91c1c;
+                }
+
+                @media (max-width: 767px) {
+                    .logout-content {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+
+                    .btn-danger {
+                        width: 100%;
+                        justify-content: center;
                     }
                 }
             `}</style>

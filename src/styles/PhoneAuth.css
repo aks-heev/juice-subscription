@@ -1,0 +1,455 @@
+/* Phone Auth Container */
+.phone-auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary-light) 100%);
+}
+
+@media (min-width: 768px) {
+    .phone-auth-container {
+        padding: var(--space-10);
+    }
+}
+
+/* Phone Auth Card */
+.phone-auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-2xl);
+    margin-bottom: var(--space-6);
+}
+
+@media (min-width: 768px) {
+    .phone-auth-card {
+        padding: var(--space-10);
+    }
+}
+
+/* Header */
+.phone-auth-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+}
+
+.juice-logo {
+    font-size: 64px;
+    margin-bottom: var(--space-4);
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.phone-auth-header h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+}
+
+.phone-auth-header p {
+    color: var(--color-gray-600);
+    font-size: var(--text-base);
+}
+
+.phone-auth-header p strong {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+.edit-phone-btn {
+    margin-left: var(--space-2);
+    color: var(--color-primary);
+    background: none;
+    border: none;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.edit-phone-btn:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Form */
+.phone-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.form-group label {
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+}
+
+/* Phone Input */
+.phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--bg-secondary);
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    transition: all var(--transition-base);
+}
+
+.phone-input-wrapper:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.country-code {
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    font-size: var(--text-lg);
+    padding-right: var(--space-2);
+    border-right: 2px solid var(--color-gray-200);
+}
+
+.phone-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--text-lg);
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    outline: none;
+    letter-spacing: 0.5px;
+}
+
+.phone-input::placeholder {
+    color: var(--color-gray-400);
+}
+
+/* OTP Inputs */
+.otp-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.otp-inputs {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-bottom: var(--space-4);
+}
+
+.otp-input {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    color: var(--color-text);
+    transition: all var(--transition-base);
+}
+
+@media (min-width: 768px) {
+    .otp-input {
+        width: 56px;
+        height: 64px;
+    }
+}
+
+.otp-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+    outline: none;
+}
+
+.otp-input:not(:placeholder-shown) {
+    border-color: var(--color-primary);
+}
+
+/* Resend Section */
+.resend-section {
+    text-align: center;
+    margin-top: var(--space-2);
+}
+
+.resend-timer {
+    color: var(--color-gray-600);
+    font-size: var(--text-sm);
+}
+
+.resend-timer strong {
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+}
+
+.resend-btn {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-base);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: var(--space-2);
+}
+
+.resend-btn:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Error Message */
+.error-message {
+    color: var(--color-danger);
+    font-size: var(--text-sm);
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.error-message::before {
+    content: '⚠️';
+}
+
+/* Footer */
+.phone-auth-footer {
+    text-align: center;
+    margin-top: var(--space-4);
+}
+
+.terms-text {
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+    line-height: 1.5;
+}
+
+/* Benefits Section */
+.auth-benefits {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: rgba(255, 255, 255, 0.9);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(10px);
+}
+
+.benefit-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.benefit-item h3 {
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+}
+
+.benefit-item p {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    margin: 0;
+}
+
+/* Auth Info */
+.auth-info {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.info-text {
+    background: rgba(255, 255, 255, 0.9);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    backdrop-filter: blur(10px);
+    line-height: 1.5;
+}
+
+.info-text strong {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+/* Profile Benefits */
+.profile-benefits {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-gray-100);
+}
+
+.profile-benefits h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    margin-bottom: var(--space-4);
+    text-align: center;
+}
+
+.benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.benefits-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    padding: var(--space-3);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+}
+
+.benefits-list li span {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+/* Button in this context */
+.phone-auth-form .btn-lg,
+.otp-form .btn-lg {
+    padding: var(--space-4);
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    border-radius: var(--radius-lg);
+}
+
+/* Form label with icon */
+.form-label-with-icon {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+    font-size: var(--text-sm);
+}
+
+/* Textarea styling */
+.form-textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+    padding: var(--space-3);
+}
+
+/* Field hint */
+.field-hint {
+    font-size: var(--text-xs);
+    color: var(--color-gray-500);
+    margin-top: var(--space-1);
+}
+
+/* Error banner */
+.error-banner {
+    padding: var(--space-3) var(--space-4);
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius-lg);
+    color: #dc2626;
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.error-banner::before {
+    content: '⚠️';
+}
+
+/* Input error state */
+.form-input.error,
+.form-textarea.error {
+    border-color: #dc2626;
+}
+
+.form-input.error:focus,
+.form-textarea.error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Complete profile card - wider */
+.complete-profile-card {
+    max-width: 500px;
+}
+
+@media (min-width: 768px) {
+    .complete-profile-card {
+        max-width: 540px;
+    }
+}
+
+/* Benefits title */
+.benefits-title {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    margin-bottom: var(--space-3);
+    text-align: center;
+    font-weight: var(--font-medium);
+}
+
+/* Benefits grid */
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+}
+
+.benefits-grid .benefit-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--color-gray-600);
+    padding: var(--space-2);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.benefits-grid .benefit-item span:first-child {
+    font-size: 24px;
+}
+
+.benefits-grid .benefit-item span:last-child {
+    font-weight: var(--font-medium);
+}

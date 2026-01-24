@@ -97,6 +97,56 @@ export function AuthProvider({ children }) {
         }
     }
 
+    const signInWithPhone = async (phone) => {
+        try {
+            setError(null)
+            const { data, error } = await supabase.auth.signInWithOtp({
+                phone,
+            })
+            if (error) throw error
+            return { data, error: null }
+        } catch (err) {
+            setError(err.message)
+            throw new Error(err.message)
+        }
+    }
+
+    const verifyOTP = async (phone, token) => {
+        try {
+            setError(null)
+            const { data, error } = await supabase.auth.verifyOtp({
+                phone,
+                token,
+                type: 'sms',
+            })
+            if (error) throw error
+            
+            // Check if user needs to complete profile (new user without name or address)
+            const hasName = data.user?.user_metadata?.name
+            const hasAddress = data.user?.user_metadata?.address
+            const needsProfile = !hasName || !hasAddress
+            
+            return needsProfile
+        } catch (err) {
+            setError(err.message)
+            throw new Error(err.message)
+        }
+    }
+
+    const updateUserProfile = async (updates) => {
+        try {
+            setError(null)
+            const { data, error } = await supabase.auth.updateUser({
+                data: updates
+            })
+            if (error) throw error
+            return { data, error: null }
+        } catch (err) {
+            setError(err.message)
+            throw new Error(err.message)
+        }
+    }
+
     const isAdmin = () => {
     const role = user?.user_metadata?.role || user?.app_metadata?.role
     return role === 'admin'
@@ -111,6 +161,9 @@ export function AuthProvider({ children }) {
         signOut,
         resetPassword,
         updateProfile,
+        signInWithPhone,
+        verifyOTP,
+        updateUserProfile,
         isAdmin,
     }
 

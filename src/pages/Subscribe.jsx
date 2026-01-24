@@ -44,7 +44,31 @@ function Subscribe() {
         const loadSavedAddresses = async () => {
             try {
                 if (user) {
-                    // For authenticated users, fetch from Supabase
+                    const allAddresses = []
+                    const seenAddresses = new Set()
+
+                    // First, add the profile address from user_metadata (signup address)
+                    if (user.user_metadata?.address) {
+                        // Extract 10-digit phone (remove +91 country code if present)
+                        let phoneNumber = user.phone || user.user_metadata?.phone || ''
+                        if (phoneNumber.startsWith('+91')) {
+                            phoneNumber = phoneNumber.slice(3)
+                        } else if (phoneNumber.startsWith('91') && phoneNumber.length === 12) {
+                            phoneNumber = phoneNumber.slice(2)
+                        }
+                        
+                        const profileAddress = {
+                            id: 'profile',
+                            name: user.user_metadata?.name || '',
+                            phone: phoneNumber,
+                            address: user.user_metadata.address,
+                            isProfile: true
+                        }
+                        allAddresses.push(profileAddress)
+                        seenAddresses.add(user.user_metadata.address)
+                    }
+
+                    // Then fetch addresses from past subscriptions
                     const { data, error } = await supabase
                         .from('subscriptions')
                         .select('id, customer_name, customer_phone, customer_address, created_at')
@@ -52,15 +76,11 @@ function Subscribe() {
                         .order('created_at', { ascending: false })
 
                     if (!error && data && data.length > 0) {
-                        // Extract unique addresses
-                        const uniqueAddresses = []
-                        const seenAddresses = new Set()
-
                         data.forEach(sub => {
-                            const key = `${sub.customer_name}_${sub.customer_phone}_${sub.customer_address}`
-                            if (!seenAddresses.has(key)) {
-                                seenAddresses.add(key)
-                                uniqueAddresses.push({
+                            // Only add if address not already in list
+                            if (!seenAddresses.has(sub.customer_address)) {
+                                seenAddresses.add(sub.customer_address)
+                                allAddresses.push({
                                     id: sub.id,
                                     name: sub.customer_name,
                                     phone: sub.customer_phone,
@@ -69,12 +89,12 @@ function Subscribe() {
                                 })
                             }
                         })
+                    }
 
-                        setSavedAddresses(uniqueAddresses)
-                        if (uniqueAddresses.length > 0) {
-                            setSelectedAddressId(uniqueAddresses[0].id)
-                            setShowNewAddressForm(false)
-                        }
+                    setSavedAddresses(allAddresses)
+                    if (allAddresses.length > 0) {
+                        setSelectedAddressId(allAddresses[0].id)
+                        setShowNewAddressForm(false)
                     }
                 } else {
                     // For guest users, load from localStorage
@@ -95,6 +115,17 @@ function Subscribe() {
 
         loadSavedAddresses()
     }, [user])
+
+    // Pre-fill customer info from authenticated user
+    useEffect(() => {
+        if (user && showNewAddressForm) {
+            setCustomerInfo(prev => ({
+                ...prev,
+                name: prev.name || user.user_metadata?.name || '',
+                phone: prev.phone || user.phone || user.user_metadata?.phone || ''
+            }))
+        }
+    }, [user, showNewAddressForm])
 
     // Update form when selected address changes
     useEffect(() => {
