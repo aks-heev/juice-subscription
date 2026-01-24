@@ -376,6 +376,13 @@ ul, ol {
   box-shadow: var(--shadow-card);
   overflow: hidden;
   transition: all var(--transition-base);
+  padding: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: var(--space-6);
+  }
 }
 
 .card:hover {
@@ -392,6 +399,12 @@ ul, ol {
 
 .card-body {
   padding: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .card-body {
+    padding: var(--space-8);
+  }
 }
 
 /* Form Elements */

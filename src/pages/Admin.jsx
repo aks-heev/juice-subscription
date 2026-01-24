@@ -259,11 +259,26 @@ function Admin() {
             </div>
 
             <style>{`
+                /* Mobile-first spacing */
                 .stats-grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: var(--space-6);
+                    grid-template-columns: 1fr;
+                    gap: var(--space-5);
                     margin-bottom: var(--space-8);
+                }
+
+                @media (min-width: 640px) {
+                    .stats-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: var(--space-6);
+                    }
+                }
+
+                @media (min-width: 1024px) {
+                    .stats-grid {
+                        grid-template-columns: repeat(4, 1fr);
+                        margin-bottom: var(--space-10);
+                    }
                 }
 
                 .admin-content {
@@ -272,10 +287,16 @@ function Admin() {
                     gap: var(--space-8);
                 }
 
+                @media (min-width: 768px) {
+                    .admin-content {
+                        gap: var(--space-12);
+                    }
+                }
+
                 .upcoming-deliveries-list {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-3);
+                    gap: var(--space-4);
                     max-height: 500px;
                     overflow-y: auto;
                     padding-right: var(--space-2);
@@ -283,11 +304,24 @@ function Admin() {
                     padding: 0 var(--space-2);
                 }
 
+                @media (min-width: 768px) {
+                    .upcoming-deliveries-list {
+                        gap: var(--space-5);
+                    }
+                }
+
                 .delivery-row {
                     display: flex;
                     align-items: center;
-                    padding: var(--space-4);
-                    gap: var(--space-6);
+                    padding: var(--space-5);
+                    gap: var(--space-4);
+                }
+
+                @media (min-width: 768px) {
+                    .delivery-row {
+                        padding: var(--space-6);
+                        gap: var(--space-6);
+                    }
                 }
 
                 .delivery-row:hover {
@@ -302,6 +336,13 @@ function Admin() {
                     min-width: 60px;
                     padding-right: var(--space-4);
                     border-right: 2px solid var(--color-gray-100);
+                }
+
+                @media (min-width: 768px) {
+                    .delivery-date-cell {
+                        min-width: 70px;
+                        padding-right: var(--space-5);
+                    }
                 }
 
                 .date-day {
@@ -321,7 +362,7 @@ function Admin() {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-2);
+                    gap: var(--space-3);
                 }
 
                 .delivery-info {
@@ -339,7 +380,7 @@ function Admin() {
                 .delivery-customer {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-1);
+                    gap: var(--space-2);
                     font-size: var(--text-sm);
                     color: var(--color-gray-600);
                 }
@@ -352,7 +393,7 @@ function Admin() {
                 .delivery-time, .delivery-address, .delivery-qty {
                     display: flex;
                     align-items: center;
-                    gap: var(--space-1);
+                    gap: var(--space-2);
                     font-size: var(--text-xs);
                     color: var(--color-gray-500);
                 }
@@ -371,8 +412,14 @@ function Admin() {
                 .admin-section {
                     background: var(--bg-card);
                     border-radius: var(--radius-xl);
-                    padding: var(--space-6);
+                    padding: var(--space-5);
                     box-shadow: var(--shadow-card);
+                }
+
+                @media (min-width: 768px) {
+                    .admin-section {
+                        padding: var(--space-8);
+                    }
                 }
 
                 .section-header {
@@ -384,9 +431,25 @@ function Admin() {
                     gap: var(--space-4);
                 }
 
+                @media (min-width: 768px) {
+                    .section-header {
+                        margin-bottom: var(--space-8);
+                    }
+                }
+
                 .table-controls {
                     display: flex;
-                    gap: var(--space-4);
+                    gap: var(--space-3);
+                    flex-direction: column;
+                    width: 100%;
+                }
+
+                @media (min-width: 768px) {
+                    .table-controls {
+                        flex-direction: row;
+                        gap: var(--space-4);
+                        width: auto;
+                    }
                 }
 
                 .search-box {
@@ -403,12 +466,19 @@ function Admin() {
 
                 .search-box input {
                     padding-left: var(--space-10);
-                    min-width: 280px;
+                    width: 100%;
+                }
+
+                @media (min-width: 768px) {
+                    .search-box input {
+                        min-width: 280px;
+                    }
                 }
 
                 .customer-cell {
                     display: flex;
                     flex-direction: column;
+                    gap: var(--space-1);
                 }
 
                 .juice-cell {
@@ -424,14 +494,27 @@ function Admin() {
                 .popularity-list {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-3);
+                    gap: var(--space-4);
+                }
+
+                @media (min-width: 768px) {
+                    .popularity-list {
+                        gap: var(--space-5);
+                    }
                 }
 
                 .popularity-item {
                     display: flex;
                     align-items: center;
                     gap: var(--space-4);
-                    padding: var(--space-4);
+                    padding: var(--space-5);
+                }
+
+                @media (min-width: 768px) {
+                    .popularity-item {
+                        padding: var(--space-6);
+                        gap: var(--space-5);
+                    }
                 }
 
                 .popularity-item:hover {
@@ -471,25 +554,6 @@ function Admin() {
                 .popularity-count span {
                     font-size: var(--text-xs);
                     color: var(--color-gray-500);
-                }
-
-                @media (max-width: 1024px) {
-                    .stats-grid {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-                }
-
-                @media (max-width: 768px) {
-                    .stats-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .table-controls {
-                        flex-direction: column;
-                        width: 100%;
-                    }
-                    .search-box input {
-                        min-width: 100%;
-                    }
                 }
             `}</style>
         </div>

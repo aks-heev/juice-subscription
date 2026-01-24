@@ -1,68 +1,73 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Leaf, Zap, Shield, Droplets, Star } from 'lucide-react'
+import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import JuiceCard from '../components/features/JuiceCard'
 
 function Home() {
     const { juices } = useApp()
+    const { user } = useAuth()
 
     const features = [
         { icon: Leaf, title: 'Fresh Daily', description: 'Cold-pressed every morning', color: 'var(--color-detox)' },
         { icon: Zap, title: 'Energy Boost', description: 'Natural ingredients only', color: 'var(--color-energy)' },
-        { icon: Shield, title: 'Immunity Power', description: 'Packed with antioxidants', color: 'var(--color-immunity)' },
+        { icon: Shield, title: 'Immunity', description: 'Packed with antioxidants', color: 'var(--color-immunity)' },
         { icon: Droplets, title: 'Hydration', description: 'Pure refreshment', color: 'var(--color-refresh)' }
     ]
 
     return (
-        <div className="page">
-            {/* Hero Section */}
+        <div className="page home-page">
+            {/* Compact Hero Section */}
             <section className="hero">
                 <div className="container">
                     <div className="hero-content">
-                        <span className="badge badge-primary animate-bounce">🍊 Fresh & Natural</span>
+                        <div className="hero-badge">
+                            <span className="emoji">🍊</span>
+                            <span>Premium Fresh Juices</span>
+                        </div>
                         <h1 className="hero-title">
                             Fresh Juice,<br />
                             <span className="gradient-text">Delivered Daily</span>
                         </h1>
                         <p className="hero-subtitle">
-                            Subscribe to premium cold-pressed juices and start your journey to a healthier lifestyle.
+                            Cold-pressed juices delivered to your doorstep every morning
                         </p>
-                        <div className="hero-actions">
-                            <Link to="/subscribe" className="btn btn-primary btn-lg">
-                                Start Subscription <ArrowRight size={20} />
-                            </Link>
-                            <Link to="/dashboard" className="btn btn-secondary btn-lg">
-                                View My Orders
-                            </Link>
+                        
+                        {/* Quick Stats */}
+                        <div className="quick-stats">
+                            <div className="stat-item">
+                                <Star size={16} />
+                                <span>4.9★</span>
+                            </div>
+                            <div className="stat-item">
+                                <TrendingUp size={16} />
+                                <span>10K+ Subscribers</span>
+                            </div>
                         </div>
-                        <div className="hero-stats">
-                            <div className="hero-stat">
-                                <Star size={16} className="text-warning" />
-                                <span><strong>4.9</strong> Rating</span>
-                            </div>
-                            <div className="hero-stat">
-                                <span><strong>10K+</strong> Happy Customers</span>
-                            </div>
-                            <div className="hero-stat">
-                                <span><strong>50+</strong> Juice Recipes</span>
-                            </div>
+
+                        <div className="hero-cta">
+                            <Link to={user ? "/subscribe" : "/register"} className="btn btn-primary btn-cta">
+                                {user ? "Start Subscription" : "Get Started"} <ArrowRight size={18} />
+                            </Link>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section className="section">
+            <section className="features-section">
                 <div className="container">
                     <div className="features-grid">
                         {features.map((feature, index) => (
-                            <div key={index} className="feature-card card">
+                            <div key={index} className="feature-card">
                                 <div className="feature-icon" style={{ background: `${feature.color}20`, color: feature.color }}>
-                                    <feature.icon size={24} />
+                                    <feature.icon size={20} />
                                 </div>
-                                <h3 className="feature-title">{feature.title}</h3>
-                                <p className="feature-description">{feature.description}</p>
+                                <div className="feature-text">
+                                    <h3 className="feature-title">{feature.title}</h3>
+                                    <p className="feature-description">{feature.description}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -70,157 +75,317 @@ function Home() {
             </section>
 
             {/* Juices Section */}
-            <section className="section" style={{ background: 'var(--bg-secondary)' }}>
+            <section className="juices-section">
                 <div className="container">
-                    <div className="section-header text-center mb-8">
-                        <h2 className="section-title">Our Popular Juices</h2>
-                        <p className="text-muted">Handcrafted with love, delivered fresh to your door</p>
+                    <div className="section-header">
+                        <div>
+                            <h2 className="section-title">Popular Juices</h2>
+                            <p className="section-subtitle">Handcrafted with fresh ingredients</p>
+                        </div>
                     </div>
-                    <div className="juices-grid">
+                    <div className="juices-scroll">
                         {juices.map(juice => (
-                            <JuiceCard key={juice.id} juice={juice} />
+                            <div key={juice.id} className="juice-item">
+                                <JuiceCard juice={juice} />
+                            </div>
                         ))}
                     </div>
                 </div>
             </section>
 
             {/* CTA Section */}
-            <section className="section cta-section">
-                <div className="container text-center">
-                    <h2 className="cta-title">Ready to Get Started?</h2>
-                    <p className="cta-subtitle">Join thousands of happy customers on their wellness journey</p>
-                    <Link to="/subscribe" className="btn btn-primary btn-lg">
-                        Subscribe Now <ArrowRight size={20} />
-                    </Link>
+            <section className="cta-section">
+                <div className="container">
+                    <div className="cta-content">
+                        <h2 className="cta-title">Start Your Wellness Journey</h2>
+                        <p className="cta-subtitle">Join thousands enjoying fresh juices daily</p>
+                        <Link to={user ? "/subscribe" : "/register"} className="btn btn-cta-white">
+                            {user ? "Subscribe Now" : "Sign Up Now"} <ArrowRight size={18} />
+                        </Link>
+                    </div>
                 </div>
             </section>
 
             <style>{`
+                .home-page {
+                    background: var(--bg-primary);
+                }
+
+                /* Hero Section - Compact Mobile-First */
                 .hero {
-                    padding: var(--space-16) 0 var(--space-20);
+                    padding: var(--space-6) 0 var(--space-8);
                     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
                 }
 
                 .hero-content {
-                    max-width: 700px;
+                    max-width: 100%;
+                }
+
+                .hero-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    padding: var(--space-2) var(--space-4);
+                    background: rgba(255, 107, 53, 0.1);
+                    border-radius: var(--radius-full);
+                    font-size: var(--text-sm);
+                    font-weight: var(--font-medium);
+                    color: var(--color-primary);
+                    margin-bottom: var(--space-4);
+                }
+
+                .hero-badge .emoji {
+                    font-size: 18px;
                 }
 
                 .hero-title {
-                    font-size: var(--text-5xl);
+                    font-size: var(--text-3xl);
                     font-weight: var(--font-extrabold);
-                    margin: var(--space-4) 0;
-                    line-height: 1.1;
+                    margin-bottom: var(--space-3);
+                    line-height: 1.2;
                 }
 
                 .hero-subtitle {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-base);
                     color: var(--color-gray-600);
-                    margin-bottom: var(--space-8);
-                    max-width: 500px;
+                    margin-bottom: var(--space-4);
+                    line-height: 1.5;
                 }
 
-                .hero-actions {
+                .quick-stats {
                     display: flex;
                     gap: var(--space-4);
-                    flex-wrap: wrap;
+                    margin-bottom: var(--space-6);
+                    padding: var(--space-3) 0;
                 }
 
-                .hero-stats {
-                    display: flex;
-                    gap: var(--space-6);
-                    margin-top: var(--space-10);
-                    padding-top: var(--space-6);
-                    border-top: 1px solid var(--color-gray-200);
-                }
-
-                .hero-stat {
+                .stat-item {
                     display: flex;
                     align-items: center;
                     gap: var(--space-2);
                     font-size: var(--text-sm);
-                    color: var(--color-gray-600);
+                    font-weight: var(--font-medium);
+                    color: var(--color-gray-700);
+                }
+
+                .stat-item svg {
+                    color: var(--color-warning);
+                }
+
+                .hero-cta {
+                    display: flex;
+                }
+
+                .btn-cta {
+                    width: 100%;
+                    justify-content: center;
+                    padding: var(--space-4) var(--space-6);
+                    font-size: var(--text-base);
+                }
+
+                /* Features Section - Compact */
+                .features-section {
+                    padding: var(--space-8) 0;
+                    background: var(--bg-card);
                 }
 
                 .features-grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: var(--space-6);
+                    grid-template-columns: 1fr;
+                    gap: var(--space-4);
                 }
 
                 .feature-card {
-                    padding: var(--space-6);
-                    text-align: center;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: var(--space-3);
+                    padding: var(--space-4);
+                    background: var(--bg-primary);
+                    border-radius: var(--radius-lg);
+                    transition: all var(--transition-base);
+                }
+
+                .feature-card:active {
+                    transform: scale(0.98);
                 }
 
                 .feature-icon {
-                    width: 56px;
-                    height: 56px;
-                    border-radius: var(--radius-lg);
+                    width: 44px;
+                    height: 44px;
+                    border-radius: var(--radius-md);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin: 0 auto var(--space-4);
+                    flex-shrink: 0;
+                }
+
+                .feature-text {
+                    flex: 1;
                 }
 
                 .feature-title {
-                    font-size: var(--text-lg);
-                    margin-bottom: var(--space-2);
+                    font-size: var(--text-base);
+                    font-weight: var(--font-semibold);
+                    margin-bottom: var(--space-1);
                 }
 
                 .feature-description {
                     font-size: var(--text-sm);
-                    color: var(--color-gray-500);
+                    color: var(--color-gray-600);
+                    line-height: 1.4;
                 }
 
-                .juices-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: var(--space-6);
+                /* Juices Section - Horizontal Scroll */
+                .juices-section {
+                    padding: var(--space-8) 0 var(--space-10);
+                    background: var(--bg-primary);
                 }
 
+                .section-header {
+                    margin-bottom: var(--space-6);
+                }
+
+                .section-title {
+                    font-size: var(--text-xl);
+                    font-weight: var(--font-bold);
+                    margin-bottom: var(--space-1);
+                }
+
+                .section-subtitle {
+                    font-size: var(--text-sm);
+                    color: var(--color-gray-600);
+                }
+
+                .juices-scroll {
+                    display: flex;
+                    gap: var(--space-4);
+                    overflow-x: auto;
+                    scroll-snap-type: x mandatory;
+                    scrollbar-width: none;
+                    -webkit-overflow-scrolling: touch;
+                    padding-bottom: var(--space-4);
+                    margin: 0 calc(-1 * var(--container-padding));
+                    padding-left: var(--container-padding);
+                    padding-right: var(--container-padding);
+                }
+
+                .juices-scroll::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .juice-item {
+                    flex: 0 0 280px;
+                    scroll-snap-align: start;
+                }
+
+                /* CTA Section */
                 .cta-section {
+                    padding: var(--space-12) 0;
                     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-                    color: white;
+                    text-align: center;
+                }
+
+                .cta-content {
+                    max-width: 100%;
                 }
 
                 .cta-title {
-                    font-size: var(--text-3xl);
+                    font-size: var(--text-2xl);
+                    font-weight: var(--font-bold);
                     color: white;
                     margin-bottom: var(--space-2);
                 }
 
                 .cta-subtitle {
-                    opacity: 0.9;
+                    font-size: var(--text-base);
+                    color: rgba(255, 255, 255, 0.9);
                     margin-bottom: var(--space-6);
                 }
 
-                .cta-section .btn-primary {
+                .btn-cta-white {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: var(--space-2);
+                    padding: var(--space-4) var(--space-8);
                     background: white;
                     color: var(--color-primary);
+                    font-weight: var(--font-semibold);
+                    border-radius: var(--radius-lg);
+                    text-decoration: none;
                     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                    transition: all var(--transition-base);
                 }
 
-                @media (max-width: 1024px) {
-                    .features-grid {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-                    .juices-grid {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
+                .btn-cta-white:active {
+                    transform: scale(0.98);
                 }
 
-                @media (max-width: 768px) {
+                /* Tablet and Desktop */
+                @media (min-width: 640px) {
                     .hero-title {
                         font-size: var(--text-4xl);
                     }
+
+                    .btn-cta {
+                        width: auto;
+                    }
+
                     .features-grid {
-                        grid-template-columns: 1fr;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: var(--space-5);
                     }
-                    .juices-grid {
-                        grid-template-columns: 1fr;
+
+                    .juice-item {
+                        flex: 0 0 320px;
                     }
-                    .hero-stats {
-                        flex-wrap: wrap;
+                }
+
+                @media (min-width: 768px) {
+                    .hero {
+                        padding: var(--space-12) 0 var(--space-16);
+                    }
+
+                    .hero-title {
+                        font-size: var(--text-5xl);
+                    }
+
+                    .hero-subtitle {
+                        font-size: var(--text-lg);
+                        max-width: 500px;
+                    }
+
+                    .features-grid {
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: var(--space-6);
+                    }
+
+                    .feature-card {
+                        flex-direction: column;
+                        text-align: center;
+                        align-items: center;
+                    }
+
+                    .juices-scroll {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: var(--space-6);
+                        overflow-x: visible;
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    .juice-item {
+                        flex: unset;
+                    }
+
+                    .cta-title {
+                        font-size: var(--text-3xl);
+                    }
+                }
+
+                @media (min-width: 1024px) {
+                    .hero-content {
+                        max-width: 700px;
                     }
                 }
             `}</style>

@@ -107,7 +107,7 @@ function Profile() {
                 </div>
 
                 {/* Profile Information */}
-                <section className="mb-8">
+                <section className="profile-section">
                     <div className="card">
                         <div className="card-header">
                             <h2 className="section-title">Personal Information</h2>
@@ -183,7 +183,7 @@ function Profile() {
                 </section>
 
                 {/* Saved Addresses */}
-                <section>
+                <section className="profile-section">
                     <h2 className="section-title">Saved Addresses</h2>
                     {savedAddresses.length === 0 ? (
                         <div className="card">
@@ -210,11 +210,27 @@ function Profile() {
             </div>
 
             <style>{`
+                .profile-section {
+                    margin-bottom: var(--space-8);
+                }
+
+                @media (min-width: 768px) {
+                    .profile-section {
+                        margin-bottom: var(--space-12);
+                    }
+                }
+
                 .card-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: var(--space-6);
+                    margin-bottom: var(--space-8);
+                }
+
+                @media (min-width: 768px) {
+                    .card-header {
+                        margin-bottom: var(--space-10);
+                    }
                 }
 
                 .button-group {
@@ -225,7 +241,13 @@ function Profile() {
                 .profile-form {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: var(--space-6);
+                }
+
+                @media (min-width: 768px) {
+                    .profile-form {
+                        gap: var(--space-8);
+                    }
                 }
 
                 .form-label {
@@ -233,24 +255,39 @@ function Profile() {
                     align-items: center;
                     gap: var(--space-2);
                     font-weight: var(--font-medium);
-                    margin-bottom: var(--space-2);
+                    margin-bottom: var(--space-3);
                 }
 
                 .addresses-list {
                     display: flex;
                     flex-direction: column;
-                    gap: var(--space-4);
+                    gap: var(--space-5);
+                }
+
+                @media (min-width: 768px) {
+                    .addresses-list {
+                        gap: var(--space-6);
+                    }
                 }
 
                 .address-item {
                     display: flex;
                     gap: var(--space-4);
                     align-items: flex-start;
+                    padding: var(--space-5);
+                }
+
+                @media (min-width: 768px) {
+                    .address-item {
+                        padding: var(--space-6);
+                        gap: var(--space-5);
+                    }
                 }
 
                 .address-icon {
                     flex-shrink: 0;
                     color: var(--color-primary);
+                    margin-top: var(--space-1);
                 }
 
                 .address-content {
@@ -258,19 +295,20 @@ function Profile() {
                 }
 
                 .address-name {
-                    margin-bottom: var(--space-1);
+                    margin-bottom: var(--space-2);
+                    font-size: var(--text-base);
                 }
 
                 .address-phone {
                     font-size: var(--text-sm);
                     color: var(--color-gray-600);
-                    margin-bottom: var(--space-1);
+                    margin-bottom: var(--space-2);
                 }
 
                 .address-text {
                     font-size: var(--text-sm);
                     color: var(--color-gray-700);
-                    line-height: 1.5;
+                    line-height: 1.6;
                 }
 
                 .empty-state-small {
@@ -278,13 +316,29 @@ function Profile() {
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    padding: var(--space-8);
+                    padding: var(--space-12);
                     color: var(--color-gray-500);
                     text-align: center;
                 }
 
+                @media (min-width: 768px) {
+                    .empty-state-small {
+                        padding: var(--space-16);
+                    }
+                }
+
                 .empty-state-small svg {
                     margin-bottom: var(--space-4);
+                }
+
+                .card {
+                    padding: var(--space-5);
+                }
+
+                @media (min-width: 768px) {
+                    .card {
+                        padding: var(--space-8);
+                    }
                 }
             `}</style>
         </div>
