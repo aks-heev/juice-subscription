@@ -1,8 +1,10 @@
+/* Mobile-first: Base styles for mobile */
 .steps-container {
     display: flex;
     justify-content: center;
-    gap: var(--space-8);
+    gap: var(--space-2);
     margin-bottom: var(--space-12);
+    margin-top: var(--space-4);
 }
 
 .step {
@@ -41,6 +43,18 @@
 .step-label {
     font-weight: var(--font-medium);
     font-size: var(--text-sm);
+    display: none;
+}
+
+/* Desktop: Show step labels */
+@media (min-width: 768px) {
+    .steps-container {
+        gap: var(--space-8);
+    }
+
+    .step-label {
+        display: block;
+    }
 }
 
 .step-content {
@@ -50,16 +64,28 @@
 
 .juices-select-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--space-4);
     margin-bottom: var(--space-8);
 }
 
+@media (min-width: 768px) {
+    .juices-select-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 .plans-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: var(--space-6);
     margin-bottom: var(--space-6);
+}
+
+@media (min-width: 640px) {
+    .plans-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
 }
 
 .plan-card {
@@ -143,8 +169,14 @@
 
 .time-slots {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+    .time-slots {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .time-slot {
@@ -230,30 +262,18 @@
     gap: var(--space-4);
 }
 
-@media (max-width: 768px) {
-    .steps-container {
-        gap: var(--space-2);
-    }
-    .step-label {
-        display: none;
-    }
-    .juices-select-grid {
-        grid-template-columns: 1fr;
-    }
-    .plans-grid {
-        grid-template-columns: 1fr;
-    }
-    .time-slots {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Saved Addresses Section */
+/* Saved Addresses Section - Mobile-first */
 .saved-addresses-section {
     background: var(--color-gray-50);
-    padding: var(--space-6);
+    padding: var(--space-4);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-gray-200);
+}
+
+@media (min-width: 768px) {
+    .saved-addresses-section {
+        padding: var(--space-6);
+    }
 }
 
 .subsection-title {
@@ -271,13 +291,20 @@
 .address-card {
     display: flex;
     align-items: flex-start;
-    gap: var(--space-4);
-    padding: var(--space-4);
+    gap: var(--space-3);
+    padding: var(--space-3);
     background: white;
     border: 2px solid var(--color-gray-200);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all var(--transition-fast);
+}
+
+@media (min-width: 768px) {
+    .address-card {
+        gap: var(--space-4);
+        padding: var(--space-4);
+    }
 }
 
 .address-card:hover {
@@ -313,41 +340,40 @@
     font-weight: var(--font-semibold);
     color: var(--color-gray-900);
     margin-bottom: var(--space-1);
+    font-size: var(--text-sm);
+}
+
+@media (min-width: 768px) {
+    .address-name {
+        font-size: var(--text-base);
+    }
 }
 
 .address-phone {
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--color-gray-600);
     margin-bottom: var(--space-1);
 }
 
+@media (min-width: 768px) {
+    .address-phone {
+        font-size: var(--text-sm);
+    }
+}
+
 .address-text {
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--color-gray-700);
     line-height: 1.5;
     word-break: break-word;
 }
 
-.w-full {
-    width: 100%;
-}
-
-@media (max-width: 768px) {
-    .saved-addresses-section {
-        padding: var(--space-4);
-    }
-
-    .address-card {
-        gap: var(--space-3);
-        padding: var(--space-3);
-    }
-
-    .address-name {
+@media (min-width: 768px) {
+    .address-text {
         font-size: var(--text-sm);
     }
+}
 
-    .address-phone,
-    .address-text {
-        font-size: var(--text-xs);
-    }
+.w-full {
+    width: 100%;
 }

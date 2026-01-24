@@ -1,0 +1,47 @@
+/* Mobile-first Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    border-top: 1px solid var(--color-gray-200);
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-2) var(--space-4);
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    color: var(--color-gray-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    flex: 1;
+    max-width: 100px;
+}
+
+.bottom-nav-item span {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+}
+
+.bottom-nav-item.active {
+    color: var(--color-primary);
+}
+
+.bottom-nav-item:hover {
+    color: var(--color-primary);
+}
+
+/* Hide bottom nav on desktop */
+@media (min-width: 768px) {
+    .bottom-nav {
+        display: none;
+    }
+}

@@ -26,6 +26,7 @@ function Navbar() {
               { path: '/', label: 'Home' },
               { path: '/subscribe', label: 'Subscribe' },
               { path: '/dashboard', label: 'My Orders' },
+              { path: '/profile', label: 'Profile' },
               ...(isAdmin() ? [{ path: '/admin', label: 'Admin' }] : [])
           ]
         : [

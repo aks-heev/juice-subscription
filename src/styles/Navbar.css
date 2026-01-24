@@ -85,31 +85,13 @@
     text-overflow: ellipsis;
 }
 
-@media (max-width: 768px) {
+/* Mobile-first: Hide navbar menu and actions on mobile (use bottom nav instead) */
+@media (max-width: 767px) {
     .navbar-menu {
-        position: fixed;
-        top: 72px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        flex-direction: column;
-        background: var(--bg-primary);
-        padding: var(--space-4);
-        transform: translateX(-100%);
-        transition: transform var(--transition-base);
+        display: none;
     }
 
-    .navbar-menu.open {
-        transform: translateX(0);
-    }
-
-    .nav-link {
-        width: 100%;
-        padding: var(--space-4);
-        font-size: var(--text-lg);
-    }
-
-    .user-info {
+    .navbar-actions {
         display: none;
     }
 }
