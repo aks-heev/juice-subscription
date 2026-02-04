@@ -144,7 +144,7 @@ function Profile() {
                             ) : (
                                 <div className="button-group">
                                     <button className="btn btn-ghost btn-sm" onClick={() => {
-                                        setIsEditing(falphone || user.se)
+                                        setIsEditing(false)
                                         setProfileData({
                                             name: user.user_metadata?.name || '',
                                             phone: user.user_metadata?.phone || '',
