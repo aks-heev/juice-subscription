@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, Sun, Moon, Citrus, LogOut, User, MapPin, ChevronDown, RefreshCw } from 'lucide-react'
+import { Menu, X, Sun, Moon, Citrus, LogOut, User, MapPin, ChevronDown, RefreshCw, ShoppingCart } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
 import { useLocation as useLocationContext } from '../../context/LocationContext'
+import { useCart } from '../../context/CartContext'
 import { useToast } from '../common/Toast'
 import '../../styles/Navbar.css'
 
@@ -13,6 +14,7 @@ function Navbar() {
     const [showLocationDropdown, setShowLocationDropdown] = useState(false)
     const { theme, toggleTheme } = useApp()
     const { user, signOut, isAdmin } = useAuth()
+    const { totalItems } = useCart()
     const { 
         displayName, 
         fullDisplayName,
@@ -145,6 +147,14 @@ function Navbar() {
                     </div>
 
                     <div className="navbar-actions">
+                        {user && (
+                            <Link to="/cart" className="cart-btn">
+                                <ShoppingCart size={22} />
+                                {totalItems > 0 && (
+                                    <span className="cart-badge">{totalItems > 9 ? '9+' : totalItems}</span>
+                                )}
+                            </Link>
+                        )}
                         {user && (
                             <div className="user-info">
                                 <User size={18} />

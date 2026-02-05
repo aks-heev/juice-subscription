@@ -10,8 +10,11 @@ import Subscribe from './pages/Subscribe'
 import Dashboard from './pages/Dashboard'
 import Admin from './pages/Admin'
 import Profile from './pages/Profile'
+import Cart from './pages/Cart'
+import ComingSoon from './pages/ComingSoon'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
+import { CartProvider } from './context/CartContext'
 
 function App() {
     const { user, loading } = useAuth()
@@ -33,47 +36,59 @@ function App() {
     }
 
     return (
-        <div className="app">
-            {user && !needsProfile && <Navbar />}
-            <Routes>
-                {/* Public routes for phone authentication */}
-                <Route path="/phone-auth" element={
-                    user ? (needsProfile ? <Navigate to="/complete-profile" replace /> : <Navigate to="/" replace />) : <PhoneAuth />
-                } />
-                <Route path="/verify-otp" element={
-                    !user ? <OTPVerification /> : (needsProfile ? <Navigate to="/complete-profile" replace /> : <Navigate to="/" replace />)
-                } />
-                <Route path="/complete-profile" element={
-                    user ? (needsProfile ? <CompleteProfile /> : <Navigate to="/" replace />) : <Navigate to="/phone-auth" replace />
-                } />
+        <CartProvider>
+            <div className="app">
+                {user && !needsProfile && <Navbar />}
+                <Routes>
+                    {/* Public routes for phone authentication */}
+                    <Route path="/phone-auth" element={
+                        user ? (needsProfile ? <Navigate to="/complete-profile" replace /> : <Navigate to="/" replace />) : <PhoneAuth />
+                    } />
+                    <Route path="/verify-otp" element={
+                        !user ? <OTPVerification /> : (needsProfile ? <Navigate to="/complete-profile" replace /> : <Navigate to="/" replace />)
+                    } />
+                    <Route path="/complete-profile" element={
+                        user ? (needsProfile ? <CompleteProfile /> : <Navigate to="/" replace />) : <Navigate to="/phone-auth" replace />
+                    } />
 
-                {/* Main app routes */}
-                <Route path="/" element={
-                    !user ? <Navigate to="/phone-auth" replace /> : (needsProfile ? <Navigate to="/complete-profile" replace /> : <Home />)
-                } />
-                <Route path="/subscribe" element={
-                    <ProtectedRoute>
-                        {needsProfile ? <Navigate to="/complete-profile" replace /> : <Subscribe />}
-                    </ProtectedRoute>
-                } />
-                <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                        {needsProfile ? <Navigate to="/complete-profile" replace /> : <Dashboard />}
-                    </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                    <ProtectedRoute>
-                        {needsProfile ? <Navigate to="/complete-profile" replace /> : <Profile />}
-                    </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                    <ProtectedRoute adminOnly>
-                        {needsProfile ? <Navigate to="/complete-profile" replace /> : <Admin />}
-                    </ProtectedRoute>
-                } />
-            </Routes>
-            {user && !needsProfile && <BottomNav />}
-        </div>
+                    {/* Main app routes */}
+                    <Route path="/" element={
+                        !user ? <Navigate to="/phone-auth" replace /> : (needsProfile ? <Navigate to="/complete-profile" replace /> : <Home />)
+                    } />
+                    <Route path="/subscribe" element={
+                        <ProtectedRoute>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Subscribe />}
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Dashboard />}
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/profile" element={
+                        <ProtectedRoute>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Profile />}
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/cart" element={
+                        <ProtectedRoute>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Cart />}
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/coming-soon" element={
+                        <ProtectedRoute>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <ComingSoon />}
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin" element={
+                        <ProtectedRoute adminOnly>
+                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Admin />}
+                        </ProtectedRoute>
+                    } />
+                </Routes>
+                {user && !needsProfile && <BottomNav />}
+            </div>
+        </CartProvider>
     )
 }
 
