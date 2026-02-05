@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, ArrowRight, Calendar, Clock, Plus } from 'lucide-react'
+import { Check, ArrowRight, Calendar, Clock, Plus, MapPin, AlertTriangle } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
+import { useLocation as useLocationContext } from '../context/LocationContext'
 import { useToast } from '../components/common/Toast'
 import { validateName, validatePhone, validateAddress, validateDate } from '../utils/validation'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -13,6 +14,15 @@ import '../styles/Subscribe.css'
 function Subscribe() {
     const { juices, subscriptionPlans, addSubscription } = useApp()
     const { user } = useAuth()
+    const { 
+        isDeliverable, 
+        hasLocation, 
+        loading: locationLoading,
+        requestLocation,
+        displayName,
+        distance,
+        deliveryRadius 
+    } = useLocationContext()
     const { success, error: showError } = useToast()
     const navigate = useNavigate()
 
@@ -279,6 +289,31 @@ function Subscribe() {
     return (
         <div className="page">
             <div className="container py-8">
+                {/* Delivery Zone Warning */}
+                {hasLocation && isDeliverable === false && (
+                    <div className="delivery-warning">
+                        <AlertTriangle size={20} />
+                        <div className="delivery-warning-content">
+                            <strong>Outside Delivery Zone</strong>
+                            <p>You're {distance} km away. We currently deliver within {deliveryRadius} km only.</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Location Request Banner */}
+                {!hasLocation && !locationLoading && (
+                    <div className="location-request-banner">
+                        <MapPin size={20} />
+                        <div className="location-request-content">
+                            <strong>Enable location to check delivery availability</strong>
+                            <p>We need your location to verify if we can deliver to your area.</p>
+                        </div>
+                        <button className="btn btn-primary btn-sm" onClick={requestLocation}>
+                            Enable Location
+                        </button>
+                    </div>
+                )}
+
                 {/* Progress Steps */}
                 <div className="steps-container">
                     {['Select Plan', 'Choose Juice', 'Delivery', 'Confirm'].map((label, index) => {
@@ -597,19 +632,26 @@ function Subscribe() {
                         </div>
                         <div className="step-actions">
                             <button className="btn btn-ghost btn-lg" onClick={prevStep} disabled={isSubmitting}>Back</button>
-                            <button 
-                                className="btn btn-success btn-lg" 
-                                onClick={handleSubmit}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <LoadingSpinner size="small" />
-                                ) : (
-                                    <>
-                                        <Check size={20} /> Confirm Subscription
-                                    </>
-                                )}
-                            </button>
+                            {hasLocation && isDeliverable === false ? (
+                                <div className="not-deliverable-message">
+                                    <AlertTriangle size={18} />
+                                    <span>We don't deliver to your area yet</span>
+                                </div>
+                            ) : (
+                                <button 
+                                    className="btn btn-success btn-lg" 
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <LoadingSpinner size="small" />
+                                    ) : (
+                                        <>
+                                            <Check size={20} /> Confirm Subscription
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
