@@ -8,6 +8,7 @@ import { useToast } from '../components/common/Toast'
 import { validateName, validatePhone, validateAddress, validateDate } from '../utils/validation'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import JuiceCard from '../components/features/JuiceCard'
+import MapAddressPicker from '../components/features/MapAddressPicker'
 import { supabase } from '../lib/supabase'
 import '../styles/Subscribe.css'
 
@@ -40,6 +41,7 @@ function Subscribe() {
     const [savedAddresses, setSavedAddresses] = useState([])
     const [selectedAddressId, setSelectedAddressId] = useState(null)
     const [showNewAddressForm, setShowNewAddressForm] = useState(true)
+    const [showMapPicker, setShowMapPicker] = useState(false)
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -203,6 +205,34 @@ function Subscribe() {
     }
 
     const handleAddNewAddress = () => {
+        setShowMapPicker(true)
+    }
+
+    const handleMapAddressSave = (mapAddress) => {
+        // Create a new saved address from map data
+        const newAddress = {
+            id: mapAddress.id,
+            name: customerInfo.name || user?.user_metadata?.name || '',
+            phone: customerInfo.phone || user?.phone || '',
+            address: mapAddress.displayAddress,
+            coordinates: mapAddress.coordinates,
+            label: mapAddress.label,
+            houseFlat: mapAddress.houseFlat,
+            landmark: mapAddress.landmark,
+            isWithinDeliveryZone: mapAddress.isWithinDeliveryZone
+        }
+        
+        // Add to saved addresses
+        setSavedAddresses(prev => [newAddress, ...prev])
+        setSelectedAddressId(newAddress.id)
+        setShowNewAddressForm(false)
+        setCustomerInfo(prev => ({
+            ...prev,
+            address: mapAddress.displayAddress
+        }))
+    }
+
+    const handleAddNewAddressManually = () => {
         setShowNewAddressForm(true)
         setSelectedAddressId(null)
         setCustomerInfo({
@@ -453,7 +483,12 @@ function Subscribe() {
                                                 />
                                             </div>
                                             <div className="address-details">
-                                                <p className="address-name"><strong>{addr.name}</strong></p>
+                                                <div className="address-header">
+                                                    {addr.label && (
+                                                        <span className="address-label-badge">{addr.label}</span>
+                                                    )}
+                                                    <p className="address-name"><strong>{addr.name}</strong></p>
+                                                </div>
                                                 <p className="address-phone">{addr.phone}</p>
                                                 <p className="address-text">{addr.address}</p>
                                             </div>
@@ -462,10 +497,17 @@ function Subscribe() {
                                 </div>
                                 <button
                                     type="button"
-                                    className="btn btn-secondary mt-4 w-full"
+                                    className="btn btn-primary mt-4 w-full"
                                     onClick={handleAddNewAddress}
                                 >
-                                    <Plus size={18} /> Add New Address
+                                    <MapPin size={18} /> Add New Address (Map)
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost mt-2 w-full"
+                                    onClick={handleAddNewAddressManually}
+                                >
+                                    <Plus size={18} /> Enter Manually
                                 </button>
                             </div>
                         )}
@@ -656,6 +698,13 @@ function Subscribe() {
                     </div>
                 )}
             </div>
+
+            {/* Map Address Picker Modal */}
+            <MapAddressPicker
+                isOpen={showMapPicker}
+                onClose={() => setShowMapPicker(false)}
+                onSaveAddress={handleMapAddressSave}
+            />
         </div>
     )
 }

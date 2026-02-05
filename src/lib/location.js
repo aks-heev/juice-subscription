@@ -134,9 +134,11 @@ export async function reverseGeocode(lat, lng) {
             shortName,
             city,
             fullAddress: data.display_name,
+            display_name: data.display_name, // Keep for compatibility
             area: address.neighbourhood || address.suburb || '',
             locality: address.city_district || address.suburb || '',
-            pincode: address.postcode || ''
+            pincode: address.postcode || '',
+            address: address // Include raw address object for detailed access
         }
     } catch (error) {
         console.error('Reverse geocoding error:', error)
@@ -144,9 +146,11 @@ export async function reverseGeocode(lat, lng) {
             shortName: 'Location detected',
             city: '',
             fullAddress: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+            display_name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
             area: '',
             locality: '',
-            pincode: ''
+            pincode: '',
+            address: {}
         }
     }
 }
