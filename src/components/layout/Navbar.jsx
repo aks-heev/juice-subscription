@@ -140,6 +140,7 @@ function Navbar() {
     const isActive = (path) => location.pathname === path
 
     return (
+        <>
         <nav className="navbar">
             <div className="container">
                 <div className="navbar-content">
@@ -339,14 +340,15 @@ function Navbar() {
                     onClick={() => setShowLocationDropdown(false)}
                 />
             )}
-
-            {/* Map Address Picker Modal */}
-            <MapAddressPicker
-                isOpen={showMapPicker}
-                onClose={() => setShowMapPicker(false)}
-                onSaveAddress={handleMapAddressSave}
-            />
         </nav>
+
+        {/* Map Address Picker Modal - rendered outside nav to escape stacking context */}
+        <MapAddressPicker
+            isOpen={showMapPicker}
+            onClose={() => setShowMapPicker(false)}
+            onSaveAddress={handleMapAddressSave}
+        />
+    </>
     )
 }
 
