@@ -286,6 +286,16 @@
     background: var(--color-primary-dark);
 }
 
+.current-location {
+    background: rgba(255, 107, 53, 0.05);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    margin-bottom: var(--space-2);
+}
+
+.mb-3 {
+    margin-bottom: var(--space-3);
+}
+
 .location-overlay {
     position: fixed;
     top: 0;

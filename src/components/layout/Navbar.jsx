@@ -48,7 +48,7 @@ function Navbar() {
     }
 
     const handleLocationClick = () => {
-        if (!hasLocation && permissionState !== 'denied') {
+        if (!hasLocation && !savedAddresses.length && permissionState !== 'denied') {
             requestLocation()
         } else {
             setShowLocationDropdown(!showLocationDropdown)
@@ -128,45 +128,75 @@ function Navbar() {
                                 <div className="location-info">
                                     <span className="location-label">Deliver to</span>
                                     <span className="location-name">
-                                        {locationLoading ? 'Detecting...' : displayName}
-                                        {hasLocation && <ChevronDown size={14} />}
+                                        {locationLoading ? 'Detecting...' : (displayName || 'Select location')}
+                                        {(hasLocation || savedAddresses.length > 0) && <ChevronDown size={14} />}
                                     </span>
                                 </div>
                             </button>
 
                             {/* Location Dropdown */}
-                            {showLocationDropdown && hasLocation && (
+                            {showLocationDropdown && (hasLocation || savedAddresses.length > 0) && (
                                 <div className="location-dropdown">
-                                    <div className="location-dropdown-header">
-                                        <MapPin size={16} />
-                                        <span>{fullDisplayName}</span>
-                                    </div>
-                                    
-                                    <div className={`delivery-status ${isDeliverable ? 'deliverable' : 'not-deliverable'}`}>
-                                        {isDeliverable ? (
-                                            <>
-                                                <span className="status-dot"></span>
-                                                We deliver here! ({distance} km away)
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="status-dot"></span>
-                                                Outside delivery zone ({distance} km away)
-                                                <p className="delivery-note">We deliver within {deliveryRadius} km</p>
-                                            </>
-                                        )}
-                                    </div>
+                                    {/* Current Location Section */}
+                                    {hasLocation && (
+                                        <>
+                                            <div className="location-dropdown-header">
+                                                <Navigation size={16} />
+                                                <span>Current Location</span>
+                                            </div>
+                                            
+                                            <button 
+                                                className="saved-address-item current-location"
+                                                onClick={() => setShowLocationDropdown(false)}
+                                            >
+                                                <MapPin size={14} />
+                                                <div className="saved-address-info">
+                                                    <span className="saved-address-label">{displayName}</span>
+                                                    <span className="saved-address-text">{fullDisplayName?.substring(0, 40)}...</span>
+                                                </div>
+                                            </button>
+                                            
+                                            <div className={`delivery-status ${isDeliverable ? 'deliverable' : 'not-deliverable'}`}>
+                                                {isDeliverable ? (
+                                                    <>
+                                                        <span className="status-dot"></span>
+                                                        We deliver here! ({distance} km away)
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="status-dot"></span>
+                                                        Outside delivery zone ({distance} km away)
+                                                        <p className="delivery-note">We deliver within {deliveryRadius} km</p>
+                                                    </>
+                                                )}
+                                            </div>
 
-                                    <button 
-                                        className="refresh-location-btn"
-                                        onClick={() => {
-                                            refreshLocation()
-                                            setShowLocationDropdown(false)
-                                        }}
-                                    >
-                                        <RefreshCw size={14} />
-                                        Refresh location
-                                    </button>
+                                            <button 
+                                                className="refresh-location-btn"
+                                                onClick={() => {
+                                                    refreshLocation()
+                                                    setShowLocationDropdown(false)
+                                                }}
+                                            >
+                                                <RefreshCw size={14} />
+                                                Refresh location
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {/* Detect Location if not available */}
+                                    {!hasLocation && permissionState !== 'denied' && (
+                                        <button 
+                                            className="refresh-location-btn mb-3"
+                                            onClick={() => {
+                                                requestLocation()
+                                                setShowLocationDropdown(false)
+                                            }}
+                                        >
+                                            <Navigation size={14} />
+                                            Detect my location
+                                        </button>
+                                    )}
 
                                     {/* Saved Addresses */}
                                     {savedAddresses.length > 0 && (
