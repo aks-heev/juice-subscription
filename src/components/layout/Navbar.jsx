@@ -21,6 +21,14 @@ function Navbar() {
             return []
         }
     })
+    // Track selected saved address
+    const [selectedAddress, setSelectedAddress] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('selectedDeliveryAddress') || 'null')
+        } catch {
+            return null
+        }
+    })
     const { theme, toggleTheme } = useApp()
     const { user, signOut, isAdmin } = useAuth()
     const { totalItems } = useCart()
@@ -40,6 +48,10 @@ function Navbar() {
     const { success } = useToast()
     const location = useLocation()
     const navigate = useNavigate()
+
+    // Compute the displayed location name (selected saved address takes priority)
+    const currentDisplayName = selectedAddress ? selectedAddress.label : displayName
+    const currentFullDisplayName = selectedAddress ? selectedAddress.address : fullDisplayName
 
     const handleLogout = async () => {
         await signOut()
@@ -75,13 +87,27 @@ function Navbar() {
         localAddresses.unshift(newAddress)
         localStorage.setItem('savedAddresses', JSON.stringify(localAddresses))
         setSavedAddresses(localAddresses)
+        
+        // Auto-select the newly saved address
+        setSelectedAddress(newAddress)
+        localStorage.setItem('selectedDeliveryAddress', JSON.stringify(newAddress))
+        
+        setShowMapPicker(false)
         success('Address saved!')
     }
 
     const handleSelectSavedAddress = (addr) => {
-        // Could update location context here if needed
+        setSelectedAddress(addr)
+        localStorage.setItem('selectedDeliveryAddress', JSON.stringify(addr))
         setShowLocationDropdown(false)
         success(`Delivering to ${addr.label || 'saved address'}`)
+    }
+
+    const handleSelectCurrentLocation = () => {
+        // Clear selected saved address to show GPS location
+        setSelectedAddress(null)
+        localStorage.removeItem('selectedDeliveryAddress')
+        setShowLocationDropdown(false)
     }
 
     const getAddressIcon = (label) => {
@@ -124,11 +150,11 @@ function Navbar() {
                                 onClick={handleLocationClick}
                                 disabled={locationLoading}
                             >
-                                <MapPin size={18} className={`location-icon ${isDeliverable === false ? 'out-of-zone' : ''}`} />
+                                <MapPin size={18} className={`location-icon ${isDeliverable === false && !selectedAddress ? 'out-of-zone' : ''}`} />
                                 <div className="location-info">
                                     <span className="location-label">Deliver to</span>
                                     <span className="location-name">
-                                        {locationLoading ? 'Detecting...' : (displayName || 'Select location')}
+                                        {locationLoading ? 'Detecting...' : (currentDisplayName || 'Select location')}
                                         {(hasLocation || savedAddresses.length > 0) && <ChevronDown size={14} />}
                                     </span>
                                 </div>
@@ -146,8 +172,8 @@ function Navbar() {
                                             </div>
                                             
                                             <button 
-                                                className="saved-address-item current-location"
-                                                onClick={() => setShowLocationDropdown(false)}
+                                                className={`saved-address-item current-location ${!selectedAddress ? 'active' : ''}`}
+                                                onClick={handleSelectCurrentLocation}
                                             >
                                                 <MapPin size={14} />
                                                 <div className="saved-address-info">
@@ -175,6 +201,8 @@ function Navbar() {
                                                 className="refresh-location-btn"
                                                 onClick={() => {
                                                     refreshLocation()
+                                                    setSelectedAddress(null)
+                                                    localStorage.removeItem('selectedDeliveryAddress')
                                                     setShowLocationDropdown(false)
                                                 }}
                                             >
@@ -205,7 +233,7 @@ function Navbar() {
                                             {savedAddresses.slice(0, 3).map((addr) => (
                                                 <button 
                                                     key={addr.id}
-                                                    className="saved-address-item"
+                                                    className={`saved-address-item ${selectedAddress?.id === addr.id ? 'active' : ''}`}
                                                     onClick={() => handleSelectSavedAddress(addr)}
                                                 >
                                                     {getAddressIcon(addr.label)}

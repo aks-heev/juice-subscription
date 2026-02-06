@@ -238,6 +238,11 @@
     background: var(--color-gray-100);
 }
 
+.saved-address-item.active {
+    background: var(--primary-50, rgba(34, 197, 94, 0.1));
+    border-left: 3px solid var(--color-primary);
+}
+
 .saved-address-item svg {
     flex-shrink: 0;
     color: var(--color-primary);
