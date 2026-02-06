@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Sun, Moon, Citrus, LogOut, User, MapPin, ChevronDown, RefreshCw, ShoppingCart, Plus, Home, Briefcase, Navigation } from 'lucide-react'
@@ -48,6 +48,12 @@ function Navbar() {
     const { success } = useToast()
     const location = useLocation()
     const navigate = useNavigate()
+
+    // Close map picker when route changes
+    useEffect(() => {
+        setShowMapPicker(false)
+        setShowLocationDropdown(false)
+    }, [location.pathname])
 
     // Compute the displayed location name (selected saved address takes priority)
     const currentDisplayName = selectedAddress ? selectedAddress.label : displayName
@@ -272,7 +278,10 @@ function Navbar() {
                                 key={link.path}
                                 to={link.path}
                                 className={`nav-link ${isActive(link.path) ? 'active' : ''}`}
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    setIsOpen(false)
+                                    setShowMapPicker(false)
+                                }}
                             >
                                 {link.label}
                             </Link>
