@@ -484,3 +484,23 @@
     font-size: var(--text-sm);
     font-weight: var(--font-medium);
 }
+
+/* Divider with text */
+.divider-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.divider-text span {
+    padding: 0 var(--space-4);
+}

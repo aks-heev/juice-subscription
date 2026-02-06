@@ -1,17 +1,26 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, Sun, Moon, Citrus, LogOut, User, MapPin, ChevronDown, RefreshCw, ShoppingCart } from 'lucide-react'
+import { Menu, X, Sun, Moon, Citrus, LogOut, User, MapPin, ChevronDown, RefreshCw, ShoppingCart, Plus, Home, Briefcase, Navigation } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
 import { useLocation as useLocationContext } from '../../context/LocationContext'
 import { useCart } from '../../context/CartContext'
 import { useToast } from '../common/Toast'
+import MapAddressPicker from '../features/MapAddressPicker'
 import '../../styles/Navbar.css'
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
     const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+    const [showMapPicker, setShowMapPicker] = useState(false)
+    const [savedAddresses, setSavedAddresses] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('savedAddresses') || '[]')
+        } catch {
+            return []
+        }
+    })
     const { theme, toggleTheme } = useApp()
     const { user, signOut, isAdmin } = useAuth()
     const { totalItems } = useCart()
@@ -43,6 +52,43 @@ function Navbar() {
             requestLocation()
         } else {
             setShowLocationDropdown(!showLocationDropdown)
+        }
+    }
+
+    const handleAddAddress = () => {
+        setShowLocationDropdown(false)
+        setShowMapPicker(true)
+    }
+
+    const handleMapAddressSave = (mapAddress) => {
+        const newAddress = {
+            id: mapAddress.id,
+            name: user?.user_metadata?.name || '',
+            phone: user?.phone || '',
+            address: mapAddress.displayAddress,
+            label: mapAddress.label,
+            coordinates: mapAddress.coordinates,
+            isLocal: true
+        }
+
+        const localAddresses = JSON.parse(localStorage.getItem('savedAddresses') || '[]')
+        localAddresses.unshift(newAddress)
+        localStorage.setItem('savedAddresses', JSON.stringify(localAddresses))
+        setSavedAddresses(localAddresses)
+        success('Address saved!')
+    }
+
+    const handleSelectSavedAddress = (addr) => {
+        // Could update location context here if needed
+        setShowLocationDropdown(false)
+        success(`Delivering to ${addr.label || 'saved address'}`)
+    }
+
+    const getAddressIcon = (label) => {
+        switch(label?.toLowerCase()) {
+            case 'home': return <Home size={14} />
+            case 'work': return <Briefcase size={14} />
+            default: return <MapPin size={14} />
         }
     }
 
@@ -121,6 +167,35 @@ function Navbar() {
                                         <RefreshCw size={14} />
                                         Refresh location
                                     </button>
+
+                                    {/* Saved Addresses */}
+                                    {savedAddresses.length > 0 && (
+                                        <div className="saved-addresses-dropdown">
+                                            <p className="dropdown-label">Saved Addresses</p>
+                                            {savedAddresses.slice(0, 3).map((addr) => (
+                                                <button 
+                                                    key={addr.id}
+                                                    className="saved-address-item"
+                                                    onClick={() => handleSelectSavedAddress(addr)}
+                                                >
+                                                    {getAddressIcon(addr.label)}
+                                                    <div className="saved-address-info">
+                                                        <span className="saved-address-label">{addr.label || 'Address'}</span>
+                                                        <span className="saved-address-text">{addr.address?.substring(0, 40)}...</span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Add Address Button */}
+                                    <button 
+                                        className="add-address-btn"
+                                        onClick={handleAddAddress}
+                                    >
+                                        <Plus size={14} />
+                                        Add new address
+                                    </button>
                                 </div>
                             )}
 
@@ -197,6 +272,13 @@ function Navbar() {
                     onClick={() => setShowLocationDropdown(false)}
                 />
             )}
+
+            {/* Map Address Picker Modal */}
+            <MapAddressPicker
+                isOpen={showMapPicker}
+                onClose={() => setShowMapPicker(false)}
+                onSaveAddress={handleMapAddressSave}
+            />
         </nav>
     )
 }

@@ -515,6 +515,19 @@ function Subscribe() {
                         {/* New Address Form */}
                         {showNewAddressForm && (
                             <>
+                                {/* Quick option to use map instead */}
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary w-full mb-4"
+                                    onClick={() => setShowMapPicker(true)}
+                                >
+                                    <MapPin size={18} /> Pick Location on Map
+                                </button>
+
+                                <div className="divider-text mb-6">
+                                    <span>or enter manually</span>
+                                </div>
+
                                 <form className="delivery-form">
                                     <div className="form-group">
                                         <label htmlFor="name" className="form-label">Full Name</label>
