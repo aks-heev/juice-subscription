@@ -145,9 +145,10 @@ function JuiceDetailSheet({ juice, isOpen, onClose }) {
                             ))}
                         </div>
                     </div>
+                </div>
 
-                    {/* Actions */}
-                    <div className="sheet-actions">
+                {/* Actions - Outside scrollable content for sticky footer */}
+                <div className="sheet-actions">
                         <div className="sheet-price-row">
                             <span className="sheet-price">₹{juice.price}</span>
                             <span className="sheet-price-note">per bottle</span>
@@ -196,7 +197,7 @@ function JuiceDetailSheet({ juice, isOpen, onClose }) {
                             </div>
                         </div>
                     </div>
-                </div>
+
             </div>
         </>
     )
