@@ -224,6 +224,8 @@ export function AppProvider({ children }) {
             throw new Error('You must be logged in to create a subscription')
         }
 
+        const isDevBypass = localStorage.getItem('dev_bypass_active')
+
         try {
             const newSubData = {
                 user_id: user.id,
@@ -237,6 +239,22 @@ export function AppProvider({ children }) {
                 start_date: subscription.customer.startDate,
                 total: subscription.total,
                 status: 'active'
+            }
+
+            // Dev bypass - store locally only
+            if (isDevBypass) {
+                const planData = subscriptionPlans.find(p => p.id === subscription.plan.id) || subscription.plan
+                const localSub = {
+                    ...newSubData,
+                    id: Date.now(),
+                    created_at: new Date().toISOString(),
+                    juice: subscription.juice,
+                    deliveryTime: subscription.deliveryTime,
+                    customer: subscription.customer,
+                    plan: { id: planData.id, name: planData.name }
+                }
+                setSubscriptions(prev => [...prev, localSub])
+                return localSub
             }
 
             const { data, error } = await supabase
@@ -278,6 +296,8 @@ export function AppProvider({ children }) {
             throw new Error('You must be logged in to place an order')
         }
 
+        const isDevBypass = localStorage.getItem('dev_bypass_active')
+
         try {
             const newOrderData = {
                 user_id: user.id,
@@ -292,6 +312,17 @@ export function AppProvider({ children }) {
                 coupon_code: orderData.coupon_code || null,
                 total: orderData.total,
                 status: 'pending'
+            }
+
+            // Dev bypass - store locally only
+            if (isDevBypass) {
+                const localOrder = {
+                    ...newOrderData,
+                    id: Date.now(),
+                    created_at: new Date().toISOString()
+                }
+                setOrders(prev => [localOrder, ...prev])
+                return localOrder
             }
 
             const { data, error } = await supabase

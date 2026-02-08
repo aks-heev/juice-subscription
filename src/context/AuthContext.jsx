@@ -3,12 +3,36 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
 
+// Dev bypass user - for testing without Supabase auth
+const DEV_BYPASS_PIN = '9999'
+const DEV_USER = {
+    id: '00000000-0000-0000-0000-000000000000',
+    email: 'dev@juicebar.local',
+    phone: '+919876543210',
+    user_metadata: {
+        name: 'Dev User',
+        phone: '9876543210',
+        address: '123 Dev Street, Test City, 123456',
+        role: 'admin'
+    },
+    app_metadata: {
+        role: 'admin'
+    }
+}
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
     useEffect(() => {
+        // Check for dev bypass first
+        if (localStorage.getItem('dev_bypass_active')) {
+            setUser(DEV_USER)
+            setLoading(false)
+            return
+        }
+
         // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user ?? null)
@@ -60,6 +84,13 @@ export function AuthProvider({ children }) {
     }
 
     const signOut = async () => {
+        // Check if dev bypass is active
+        if (localStorage.getItem('dev_bypass_active')) {
+            localStorage.removeItem('dev_bypass_active')
+            setUser(null)
+            return { error: null }
+        }
+
         try {
             setError(null)
             const { error } = await supabase.auth.signOut()
@@ -69,6 +100,15 @@ export function AuthProvider({ children }) {
             setError(err.message)
             return { error: err.message }
         }
+    }
+
+    const devLogin = (pin) => {
+        if (pin === DEV_BYPASS_PIN) {
+            setUser(DEV_USER)
+            localStorage.setItem('dev_bypass_active', 'true')
+            return true
+        }
+        return false
     }
 
     const resetPassword = async (email) => {
@@ -165,6 +205,7 @@ export function AuthProvider({ children }) {
         verifyOTP,
         updateUserProfile,
         isAdmin,
+        devLogin,
     }
 
     return (

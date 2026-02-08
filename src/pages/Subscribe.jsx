@@ -195,6 +195,10 @@ function Subscribe() {
         const dateError = validateDate(customerInfo.startDate, 'Start date')
         if (dateError) newErrors.startDate = dateError
 
+        if (Object.keys(newErrors).length > 0) {
+            console.log('Validation errors:', newErrors, 'Customer info:', customerInfo)
+        }
+
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -246,8 +250,8 @@ function Subscribe() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-
         if (!validateStep3()) {
+            console.log('Validation errors:', errors)
             showError('Please fix the errors before submitting')
             return
         }

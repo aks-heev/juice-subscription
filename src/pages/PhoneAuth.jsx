@@ -8,8 +8,19 @@ function PhoneAuth() {
     const [phone, setPhone] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
-    const { signInWithPhone } = useAuth()
+    const [showDevLogin, setShowDevLogin] = useState(false)
+    const [devPin, setDevPin] = useState('')
+    const [devError, setDevError] = useState('')
+    const { signInWithPhone, devLogin } = useAuth()
     const navigate = useNavigate()
+
+    const handleDevLogin = () => {
+        if (devLogin(devPin)) {
+            navigate('/')
+        } else {
+            setDevError('Invalid PIN')
+        }
+    }
 
     const formatPhoneNumber = (value) => {
         // Remove all non-digits
@@ -107,6 +118,35 @@ function PhoneAuth() {
                     </div>
                 </form>
             </div>
+
+            <button 
+                type="button" 
+                className="dev-login-btn"
+                onClick={() => setShowDevLogin(true)}
+            >
+                🔧 Dev Login
+            </button>
+
+            {showDevLogin && (
+                <div className="dev-modal-overlay" onClick={() => setShowDevLogin(false)}>
+                    <div className="dev-modal" onClick={e => e.stopPropagation()}>
+                        <h3>Developer Login</h3>
+                        <input
+                            type="password"
+                            value={devPin}
+                            onChange={(e) => { setDevPin(e.target.value); setDevError(''); }}
+                            placeholder="Enter PIN"
+                            className="dev-pin-input"
+                            autoFocus
+                        />
+                        {devError && <p className="error-message">{devError}</p>}
+                        <div className="dev-modal-actions">
+                            <button onClick={() => setShowDevLogin(false)} className="btn btn-ghost">Cancel</button>
+                            <button onClick={handleDevLogin} className="btn btn-primary">Login</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="auth-benefits">
                 <div className="benefit-item">
