@@ -185,7 +185,7 @@ export function AppProvider({ children }) {
 
                     // Fetch orders
                     let ordersQuery = supabase
-                        .from('orders')
+                        .from('juice_orders')
                         .select('*')
                         .order('created_at', { ascending: false })
 
@@ -295,7 +295,7 @@ export function AppProvider({ children }) {
             }
 
             const { data, error } = await supabase
-                .from('orders')
+                .from('juice_orders')
                 .insert([newOrderData])
                 .select()
                 .single()
@@ -313,7 +313,7 @@ export function AppProvider({ children }) {
     const updateOrder = async (id, updates) => {
         try {
             const { error } = await supabase
-                .from('orders')
+                .from('juice_orders')
                 .update(updates)
                 .eq('id', id)
 
