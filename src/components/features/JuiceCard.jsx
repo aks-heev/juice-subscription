@@ -13,10 +13,11 @@ const CATEGORY_THEMES = {
     protein:  '268, 60%, 63%',
 }
 
-function JuiceCard({ juice, onSelect, selected, showCartControls = true }) {
+function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = true }) {
     const { addItem, incrementItem, decrementItem, getItemQuantity } = useCart()
     const quantity = getItemQuantity(juice.id)
     const themeColor = CATEGORY_THEMES[juice.category] || '18, 100%, 60%'
+    const isClickable = onSelect || onCardClick
 
     const handleAddToCart = (e) => {
         e.stopPropagation()
@@ -33,11 +34,16 @@ function JuiceCard({ juice, onSelect, selected, showCartControls = true }) {
         decrementItem(juice.id)
     }
 
+    const handleCardClick = () => {
+        if (onSelect) onSelect(juice)
+        if (onCardClick) onCardClick(juice)
+    }
+
     return (
         <div
-            className={`juice-card-wrapper ${selected ? 'selected' : ''} ${onSelect ? 'clickable' : ''}`}
+            className={`juice-card-wrapper ${selected ? 'selected' : ''} ${isClickable ? 'clickable' : ''}`}
             style={{ '--theme-color': themeColor }}
-            onClick={onSelect ? () => onSelect(juice) : undefined}
+            onClick={isClickable ? handleCardClick : undefined}
         >
             <div className="juice-card-inner">
                 {/* Background emoji area */}
@@ -127,6 +133,7 @@ JuiceCard.propTypes = {
     }).isRequired,
     onSelect: PropTypes.func,
     selected: PropTypes.bool,
+    onCardClick: PropTypes.func,
     showCartControls: PropTypes.bool
 }
 

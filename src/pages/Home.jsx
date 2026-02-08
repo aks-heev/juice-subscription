@@ -4,14 +4,26 @@ import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp, ChevronLeft,
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import JuiceCard from '../components/features/JuiceCard'
+import JuiceDetailSheet from '../components/features/JuiceDetailSheet'
 
 function Home() {
     const { juices } = useApp()
     const { user } = useAuth()
     const [currentSlide, setCurrentSlide] = useState(0)
     const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+    const [selectedJuice, setSelectedJuice] = useState(null)
+    const [isSheetOpen, setIsSheetOpen] = useState(false)
     const touchStartX = useRef(0)
     const touchEndX = useRef(0)
+
+    const handleJuiceClick = (juice) => {
+        setSelectedJuice(juice)
+        setIsSheetOpen(true)
+    }
+
+    const handleCloseSheet = () => {
+        setIsSheetOpen(false)
+    }
 
     const features = [
         { icon: Leaf, title: 'Fresh Daily', description: 'Cold-pressed every morning from locally sourced fruits and vegetables', color: 'var(--color-detox)', emoji: '🥬', bg: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%)' },
@@ -162,7 +174,7 @@ function Home() {
                     <div className="juices-scroll">
                         {juices.map(juice => (
                             <div key={juice.id} className="juice-item">
-                                <JuiceCard juice={juice} />
+                                <JuiceCard juice={juice} onCardClick={handleJuiceClick} />
                             </div>
                         ))}
                     </div>
@@ -181,6 +193,13 @@ function Home() {
                     </div>
                 </div>
             </section>
+
+            {/* Juice Detail Bottom Sheet */}
+            <JuiceDetailSheet
+                juice={selectedJuice}
+                isOpen={isSheetOpen}
+                onClose={handleCloseSheet}
+            />
 
             <style>{`
                 .home-page {
