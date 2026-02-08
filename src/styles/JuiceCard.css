@@ -1,114 +1,197 @@
-.juice-card {
-    transition: all var(--transition-base);
-    cursor: default;
+/* ===== Juice Card — DestinationCard Style ===== */
+
+.juice-card-wrapper {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    border-radius: var(--radius-xl);
 }
 
-.juice-card.clickable {
+.juice-card-wrapper:hover {
+    transform: scale(1.03);
+}
+
+.juice-card-wrapper.clickable {
     cursor: pointer;
 }
 
-.juice-card.selected {
-    border: 2px solid var(--color-primary);
-    transform: scale(1.02);
+.juice-card-wrapper.selected {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
-.juice-card-image {
-    height: 160px;
+/* Inner card */
+.juice-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 0 30px -10px hsla(var(--theme-color), 0.4);
+    transition: box-shadow 0.5s ease;
+}
+
+.juice-card-wrapper:hover .juice-card-inner {
+    box-shadow: 0 0 50px -10px hsla(var(--theme-color), 0.6);
+}
+
+/* Background emoji area */
+.juice-card-bg {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    transition: transform 0.5s ease;
 }
 
-.juice-card-image.detox-bg {
-    background: rgba(124, 181, 24, 0.08);
+.juice-card-wrapper:hover .juice-card-bg {
+    transform: scale(1.1);
 }
 
-.juice-card-image.energy-bg {
-    background: rgba(255, 107, 53, 0.08);
+.juice-card-bg.detox-bg {
+    background: linear-gradient(135deg, #d4e157 0%, #8bc34a 50%, #558b2f 100%);
 }
 
-.juice-card-image.immunity-bg {
-    background: rgba(255, 182, 39, 0.08);
+.juice-card-bg.energy-bg {
+    background: linear-gradient(135deg, #ffab91 0%, #ff7043 50%, #e64a19 100%);
 }
 
-.juice-card-image.refresh-bg {
-    background: rgba(46, 196, 182, 0.08);
+.juice-card-bg.immunity-bg {
+    background: linear-gradient(135deg, #ffe082 0%, #ffb300 50%, #f57f17 100%);
 }
 
-.juice-card-image.protein-bg {
-    background: rgba(155, 93, 229, 0.08);
+.juice-card-bg.refresh-bg {
+    background: linear-gradient(135deg, #80deea 0%, #26c6da 50%, #00838f 100%);
 }
 
-/* Subscribe Pill */
+.juice-card-bg.protein-bg {
+    background: linear-gradient(135deg, #ce93d8 0%, #ab47bc 50%, #6a1b9a 100%);
+}
+
+.juice-emoji {
+    font-size: 64px;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    transition: transform 0.5s ease;
+}
+
+.juice-card-wrapper:hover .juice-emoji {
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* Gradient overlay */
+.juice-card-gradient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* Subscribe pill */
 .subscribe-pill {
     position: absolute;
-    top: var(--space-3);
-    right: var(--space-3);
+    top: var(--space-2);
+    right: var(--space-2);
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid var(--color-gray-200);
+    gap: 3px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-full);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: var(--font-semibold);
-    color: var(--color-primary);
+    color: white;
     text-decoration: none;
-    transition: all var(--transition-fast);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    z-index: 3;
 }
 
 .subscribe-pill:hover {
-    background: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .subscribe-pill svg {
     flex-shrink: 0;
 }
 
-.juice-emoji {
-    font-size: 64px;
+/* Category badge */
+.juice-card-category {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius-full);
+    font-size: 9px;
+    font-weight: var(--font-bold);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 3;
 }
 
-.juice-card-body {
-    padding: var(--space-4);
+/* Content overlay */
+.juice-card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--space-3);
+    color: white;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
 }
 
 .juice-name {
-    font-size: var(--text-lg);
-    margin: var(--space-2) 0;
+    font-size: var(--text-base);
+    font-weight: var(--font-bold);
+    color: white;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.juice-description {
-    font-size: var(--text-sm);
-    color: var(--color-gray-500);
-    margin-bottom: var(--space-3);
-    line-height: 1.5;
-}
-
-.juice-meta {
-    display: flex;
-    gap: var(--space-4);
+.juice-meta-line {
     font-size: var(--text-xs);
-    color: var(--color-gray-400);
-    margin-bottom: var(--space-4);
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 2px;
+    font-weight: var(--font-medium);
 }
 
-.juice-footer {
+/* Action bar — styled like the Explore button */
+.juice-action-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: hsla(var(--theme-color), 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsla(var(--theme-color), 0.3);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+}
+
+.juice-card-wrapper:hover .juice-action-bar {
+    background: hsla(var(--theme-color), 0.35);
+    border-color: hsla(var(--theme-color), 0.5);
 }
 
 .juice-price {
     font-family: var(--font-display);
-    font-size: var(--text-xl);
+    font-size: var(--text-base);
     font-weight: var(--font-bold);
-    color: var(--color-primary);
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 /* Cart Controls */
@@ -118,27 +201,59 @@
 }
 
 .btn-add-cart {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 0;
+    background: hsla(var(--theme-color), 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsla(var(--theme-color), 0.4);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.btn-add-cart .cart-icon-side {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.btn-add-cart .cart-label {
+    padding-right: 10px;
+}
+
+.btn-add-cart:hover {
+    background: hsla(var(--theme-color), 0.45);
+    border-color: hsla(var(--theme-color), 0.6);
+}
+
+.btn-add-cart:active {
+    transform: scale(0.95);
 }
 
 .quantity-controls {
     display: flex;
     align-items: center;
     gap: 0;
-    background: var(--color-primary);
+    background: hsla(var(--theme-color), 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsla(var(--theme-color), 0.4);
     border-radius: var(--radius-md);
     overflow: hidden;
 }
 
 .qty-btn {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,7 +261,7 @@
     border: none;
     color: white;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.2s ease;
 }
 
 .qty-btn:hover {
@@ -154,13 +269,98 @@
 }
 
 .qty-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
 .qty-value {
-    min-width: 28px;
+    min-width: 22px;
     text-align: center;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     font-weight: var(--font-bold);
     color: white;
+}
+
+/* ===== Mobile compact ===== */
+@media (max-width: 767px) {
+    .juice-card-wrapper {
+        border-radius: var(--radius-lg);
+    }
+
+    .juice-card-inner {
+        border-radius: var(--radius-lg);
+        min-height: 200px;
+    }
+
+    .juice-emoji {
+        font-size: 40px;
+    }
+
+    .juice-card-content {
+        padding: var(--space-2);
+    }
+
+    .juice-name {
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+    }
+
+    .juice-meta-line {
+        font-size: 9px;
+    }
+
+    .juice-action-bar {
+        margin-top: var(--space-1);
+        padding: 4px var(--space-2);
+        border-radius: var(--radius-md);
+    }
+
+    .juice-price {
+        font-size: var(--text-sm);
+    }
+
+    .btn-add-cart {
+        padding: 0;
+        font-size: 10px;
+        gap: 0;
+        border-radius: var(--radius-md);
+    }
+
+    .btn-add-cart .cart-icon-side {
+        width: 22px;
+        height: 22px;
+    }
+
+    .btn-add-cart .cart-label {
+        padding-right: 6px;
+        font-size: 9px;
+    }
+
+    .btn-add-cart svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .qty-btn {
+        width: 22px;
+        height: 22px;
+    }
+
+    .qty-btn svg {
+        width: 11px;
+        height: 11px;
+    }
+
+    .qty-value {
+        min-width: 16px;
+        font-size: 10px;
+    }
+
+    .subscribe-pill {
+        display: none;
+    }
+
+    .juice-card-category {
+        font-size: 7px;
+        padding: 1px 5px;
+    }
 }

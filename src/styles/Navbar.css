@@ -14,13 +14,12 @@
 .navbar-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--space-6);
 }
 
 .navbar-left {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
 }
 
 .navbar-brand {
@@ -35,7 +34,7 @@
 
 .brand-text {
     font-family: var(--font-display);
-    font-size: var(--text-xl);
+    font-size: var(--text-10xl);
     font-weight: var(--font-bold);
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     -webkit-background-clip: text;
@@ -46,6 +45,7 @@
 /* Location Styles */
 .location-wrapper {
     position: relative;
+    margin-right: auto;
 }
 
 .location-btn {
@@ -71,6 +71,13 @@
 
 .location-icon {
     color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.location-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
@@ -410,11 +417,13 @@
         padding: var(--space-2) 0;
     }
 
-    .navbar-left {
-        flex-direction: column;
-        align-items: flex-start;
+    .navbar-content {
         gap: var(--space-2);
-        flex: 1;
+    }
+
+    .navbar-left {
+        flex: 0 0 50%;
+        min-width: 0;
     }
 
     .navbar-brand {
@@ -427,17 +436,24 @@
     }
 
     .brand-text {
-        font-size: var(--text-lg);
+        font-size: var(--text-xl);
+    }
+
+    .location-wrapper {
+        flex: 1;
+        min-width: 0;
+        margin-right: 0;
     }
 
     .location-btn {
-        padding: var(--space-1) var(--space-2);
-        background: transparent;
+        padding: var(--space-3) var(--space-2);
+        background: var(--color-gray-100);
+        border-radius: var(--radius-lg);
         width: 100%;
     }
 
     .location-btn:hover {
-        background: transparent;
+        background: var(--color-gray-200);
     }
 
     .location-icon {
@@ -445,19 +461,19 @@
         height: 16px;
     }
 
+    .location-name {
+        font-size: var(--text-xs);
+        max-width: none;
+        flex: 1;
+        min-width: 0;
+    }
+
     .location-info {
         flex-direction: row;
         align-items: center;
         gap: var(--space-1);
-    }
-
-    .location-label {
-        display: none;
-    }
-
-    .location-name {
-        font-size: var(--text-xs);
-        max-width: 180px;
+        min-width: 0;
+        flex: 1;
     }
 
     .location-dropdown {

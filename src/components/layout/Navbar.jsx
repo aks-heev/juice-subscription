@@ -146,20 +146,22 @@ function Navbar() {
                 <div className="navbar-content">
                     <div className="navbar-left">
                         <Link to="/" className="navbar-brand">
-                            <Citrus size={32} className="brand-icon" />
+                            <Citrus size={60} className="brand-icon" />
                             <span className="brand-text">Fresh Squeeze</span>
                         </Link>
+                    </div>
 
-                        {/* Location Display */}
-                        <div className="location-wrapper">
+                    {/* Location Display */}
+                    <div className="location-wrapper">
                             <button 
                                 className="location-btn"
                                 onClick={handleLocationClick}
                                 disabled={locationLoading}
                             >
-                                <MapPin size={18} className={`location-icon ${isDeliverable === false && !selectedAddress ? 'out-of-zone' : ''}`} />
+                                <div className="location-pin">
+                                    <MapPin size={18} className={`location-icon ${isDeliverable === false && !selectedAddress ? 'out-of-zone' : ''}`} />
+                                </div>
                                 <div className="location-info">
-                                    <span className="location-label">Deliver to</span>
                                     <span className="location-name">
                                         {locationLoading ? 'Detecting...' : (currentDisplayName || 'Select location')}
                                         {(hasLocation || savedAddresses.length > 0) && <ChevronDown size={14} />}
@@ -270,7 +272,6 @@ function Navbar() {
                                     <span>Location access denied</span>
                                 </div>
                             )}
-                        </div>
                     </div>
 
                     <div className={`navbar-menu ${isOpen ? 'open' : ''}`}>
