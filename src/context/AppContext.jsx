@@ -111,6 +111,7 @@ export function AppProvider({ children }) {
     const { user, isAdmin } = useAuth()
     const [juices, setJuices] = useState([])
     const [subscriptions, setSubscriptions] = useState([])
+    const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [theme, setTheme] = useState(() => {
         const saved = localStorage.getItem('juice_theme') || 'light'
@@ -181,9 +182,30 @@ export function AppProvider({ children }) {
                         })
                         setSubscriptions(mappedSubs)
                     }
+
+                    // Fetch orders
+                    let ordersQuery = supabase
+                        .from('orders')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+
+                    // If not admin, filter by user_id
+                    if (!isAdmin()) {
+                        ordersQuery = ordersQuery.eq('user_id', user.id)
+                    }
+
+                    const { data: ordersData, error: ordersError } = await ordersQuery
+
+                    if (ordersError) {
+                        console.error('Error fetching orders:', ordersError)
+                        setOrders([])
+                    } else {
+                        setOrders(ordersData || [])
+                    }
                 } else {
-                    // Clear subscriptions if no user
+                    // Clear subscriptions and orders if no user
                     setSubscriptions([])
+                    setOrders([])
                 }
             } catch (err) {
                 console.error('Supabase fetch error:', err.message)
@@ -251,6 +273,61 @@ export function AppProvider({ children }) {
         }
     }
 
+    const addOrder = async (orderData) => {
+        if (!user) {
+            throw new Error('You must be logged in to place an order')
+        }
+
+        try {
+            const newOrderData = {
+                user_id: user.id,
+                items: orderData.items,
+                customer_name: orderData.customer_name,
+                customer_phone: orderData.customer_phone,
+                customer_address: orderData.customer_address,
+                delivery_time: orderData.delivery_time,
+                subtotal: orderData.subtotal,
+                delivery_fee: orderData.delivery_fee,
+                discount: orderData.discount || 0,
+                coupon_code: orderData.coupon_code || null,
+                total: orderData.total,
+                status: 'pending'
+            }
+
+            const { data, error } = await supabase
+                .from('orders')
+                .insert([newOrderData])
+                .select()
+                .single()
+
+            if (error) throw error
+
+            setOrders(prev => [data, ...prev])
+            return data
+        } catch (err) {
+            console.error('Error placing order:', err.message)
+            throw err
+        }
+    }
+
+    const updateOrder = async (id, updates) => {
+        try {
+            const { error } = await supabase
+                .from('orders')
+                .update(updates)
+                .eq('id', id)
+
+            if (error) throw error
+
+            setOrders(prev => prev.map(order =>
+                order.id === id ? { ...order, ...updates } : order
+            ))
+        } catch (err) {
+            console.error('Error updating order:', err.message)
+            throw err
+        }
+    }
+
     const updateSubscription = async (id, updates) => {
         try {
             const { error } = await supabase
@@ -284,9 +361,12 @@ export function AppProvider({ children }) {
         juices,
         subscriptionPlans,
         subscriptions,
+        orders,
         addSubscription,
         updateSubscription,
         cancelSubscription,
+        addOrder,
+        updateOrder,
         theme,
         toggleTheme,
         loading
