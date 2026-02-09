@@ -61,7 +61,12 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
 
                 {/* Subscribe pill */}
                 {!onSelect && (
-                    <Link to="/subscribe" className="subscribe-pill" onClick={(e) => e.stopPropagation()}>
+                    <Link 
+                        to="/subscribe" 
+                        state={{ juice }} 
+                        className="subscribe-pill" 
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <Calendar size={10} />
                         <span>Subscribe</span>
                     </Link>

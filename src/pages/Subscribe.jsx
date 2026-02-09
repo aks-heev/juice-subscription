@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Check, ArrowRight, Calendar, Clock, Plus, MapPin, AlertTriangle } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Check, ArrowRight, ArrowLeft, Calendar, Clock, Plus, MapPin, AlertTriangle } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { useLocation as useLocationContext } from '../context/LocationContext'
@@ -15,6 +15,7 @@ import '../styles/Subscribe.css'
 function Subscribe() {
     const { juices, subscriptionPlans, addSubscription } = useApp()
     const { user } = useAuth()
+    const location = useLocation()
     const { 
         isDeliverable, 
         hasLocation, 
@@ -27,8 +28,12 @@ function Subscribe() {
     const { success, error: showError } = useToast()
     const navigate = useNavigate()
 
+    // Check if a juice was pre-selected (from JuiceCard subscribe button)
+    const preSelectedJuice = location.state?.juice || null
+    const isDirectSubscription = !!preSelectedJuice
+
     const [step, setStep] = useState(1)
-    const [selectedJuice, setSelectedJuice] = useState(null)
+    const [selectedJuice, setSelectedJuice] = useState(preSelectedJuice)
     const [selectedPlan, setSelectedPlan] = useState(null)
     const [quantity, setQuantity] = useState(1)
     const [deliveryTime, setDeliveryTime] = useState('morning')
@@ -302,7 +307,8 @@ function Subscribe() {
 
     const nextStep = () => {
         if (step === 1) {
-            if (selectedPlan?.type === 'variety') {
+            if (isDirectSubscription || selectedPlan?.type === 'variety') {
+                // Skip juice selection if juice is pre-selected or variety pack
                 setStep(3)
             } else {
                 setStep(2)
@@ -312,16 +318,50 @@ function Subscribe() {
         }
     }
     
-    const prevStep = () => {
-        if (step === 3 && selectedPlan?.type === 'variety') {
+    const prevStep = useCallback(() => {
+        if (step === 1) {
+            // Go back to previous page (home or juice detail)
+            navigate(-1)
+        } else if (step === 3 && (isDirectSubscription || selectedPlan?.type === 'variety')) {
             setStep(1)
         } else {
             setStep(step - 1)
         }
-    }
+    }, [step, isDirectSubscription, selectedPlan, navigate])
+
+    // Handle browser back button
+    useEffect(() => {
+        const handlePopState = (e) => {
+            e.preventDefault()
+            if (step > 1) {
+                // Push state back to prevent actual navigation
+                window.history.pushState(null, '', window.location.pathname)
+                prevStep()
+            }
+        }
+
+        // Push initial state
+        window.history.pushState(null, '', window.location.pathname)
+        window.addEventListener('popstate', handlePopState)
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState)
+        }
+    }, [step, prevStep])
 
     return (
-        <div className="page">
+        <div className="page subscribe-page">
+            {/* Back Navigation Header */}
+            <div className="subscribe-header">
+                <button className="back-btn" onClick={prevStep} aria-label="Go back">
+                    <ArrowLeft size={20} />
+                </button>
+                <h1 className="subscribe-header-title">
+                    {isDirectSubscription ? `Subscribe to ${preSelectedJuice.name}` : 'Subscribe'}
+                </h1>
+                <div className="header-spacer"></div>
+            </div>
+
             <div className="container py-8">
                 {/* Delivery Zone Warning */}
                 {hasLocation && isDeliverable === false && (
@@ -348,12 +388,22 @@ function Subscribe() {
                     </div>
                 )}
 
-                {/* Progress Steps */}
+                {/* Progress Steps - adjusted for direct subscription (no juice selection step) */}
                 <div className="steps-container">
-                    {['Select Plan', 'Choose Juice', 'Delivery', 'Confirm'].map((label, index) => {
-                        const shouldShow = !(selectedPlan?.type === 'variety' && index === 1)
-                        const isCompleted = step > index + 1 || (selectedPlan?.type === 'variety' && index === 1 && step >= 3)
-                        const isActive = step === index + 1
+                    {(isDirectSubscription 
+                        ? ['Select Plan', 'Delivery', 'Confirm']
+                        : ['Select Plan', 'Choose Juice', 'Delivery', 'Confirm']
+                    ).map((label, index) => {
+                        const adjustedStep = isDirectSubscription 
+                            ? (index === 0 ? 1 : index === 1 ? 3 : 4)
+                            : index + 1
+                        const shouldShow = isDirectSubscription || !(selectedPlan?.type === 'variety' && index === 1)
+                        const isCompleted = isDirectSubscription 
+                            ? step > adjustedStep
+                            : step > index + 1 || (selectedPlan?.type === 'variety' && index === 1 && step >= 3)
+                        const isActive = isDirectSubscription 
+                            ? step === adjustedStep
+                            : step === index + 1
                         
                         if (!shouldShow && step >= 3) {
                             return null
@@ -365,7 +415,7 @@ function Subscribe() {
                                     {isCompleted ? <Check size={16} /> : index + 1}
                                 </div>
                                 <span className="step-label">
-                                    {selectedPlan?.type === 'variety' && index === 1 ? 'Variety Pack' : label}
+                                    {!isDirectSubscription && selectedPlan?.type === 'variety' && index === 1 ? 'Variety Pack' : label}
                                 </span>
                             </div>
                         )
@@ -375,16 +425,36 @@ function Subscribe() {
                 {/* Step 1: Select Plan */}
                 {step === 1 && (
                     <div className="step-content animate-fade-in">
+                        {/* Show pre-selected juice when in direct subscription mode */}
+                        {isDirectSubscription && (
+                            <div className="preselected-juice-section">
+                                <h3 className="subsection-title">Selected Juice</h3>
+                                <div className="preselected-juice-card">
+                                    <span className="preselected-juice-emoji">{preSelectedJuice.image}</span>
+                                    <div className="preselected-juice-info">
+                                        <h4 className="preselected-juice-name">{preSelectedJuice.name}</h4>
+                                        <p className="preselected-juice-price">₹{preSelectedJuice.price}/bottle</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <h2 className="section-title">Choose Your Plan</h2>
-                        <p className="text-muted mb-6">Select a subscription plan that works for you</p>
+                        <p className="text-muted mb-6">
+                            {isDirectSubscription 
+                                ? 'Select how long you want to subscribe'
+                                : 'Select a subscription plan that works for you'}
+                        </p>
                         <div className="plans-grid">
-                            {subscriptionPlans.map(plan => (
+                            {subscriptionPlans
+                                .filter(plan => isDirectSubscription ? plan.type === 'single' : true)
+                                .map(plan => (
                                 <div
                                     key={plan.id}
                                     className={`plan-card card ${selectedPlan?.id === plan.id ? 'selected' : ''}`}
                                     onClick={() => setSelectedPlan(plan)}
                                 >
-                                    {plan.isPopular && (
+                                    {plan.isPopular && !isDirectSubscription && (
                                         <span className="plan-badge">Most Popular</span>
                                     )}
                                     {plan.isTrial && (
@@ -397,7 +467,7 @@ function Subscribe() {
                                         <span className="discount-label">OFF</span>
                                     </div>
                                     <p className="plan-description">{plan.description}</p>
-                                    {plan.type === 'variety' && (
+                                    {plan.type === 'variety' && !isDirectSubscription && (
                                         <span className="badge badge-secondary">🍹 Variety Pack</span>
                                     )}
                                 </div>
@@ -425,8 +495,8 @@ function Subscribe() {
                     </div>
                 )}
 
-                {/* Step 2: Choose Juice */}
-                {step === 2 && selectedPlan?.type === 'single' && (
+                {/* Step 2: Choose Juice (Skip if juice pre-selected) */}
+                {step === 2 && !isDirectSubscription && selectedPlan?.type === 'single' && (
                     <div className="step-content animate-fade-in">
                         <h2 className="section-title">Choose Your Juice</h2>
                         <p className="text-muted mb-6">Select your favorite juice for daily delivery</p>

@@ -158,6 +158,7 @@ function JuiceDetailSheet({ juice, isOpen, onClose }) {
                             {/* Subscribe button */}
                             <Link 
                                 to="/subscribe" 
+                                state={{ juice }}
                                 className="sheet-subscribe-btn"
                                 onClick={onClose}
                             >
