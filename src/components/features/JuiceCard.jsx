@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import { Plus, Minus, ShoppingCart, Calendar } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Plus, Minus, ShoppingCart, Calendar, Clock } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import '../../styles/JuiceCard.css'
 
@@ -13,11 +14,16 @@ const CATEGORY_THEMES = {
     protein:  '268, 60%, 63%',
 }
 
+// Calculate "original" price (markup for showing savings)
+const getOriginalPrice = (price) => Math.round(price * 1.4)
+
 function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = true }) {
     const { addItem, incrementItem, decrementItem, getItemQuantity } = useCart()
     const quantity = getItemQuantity(juice.id)
     const themeColor = CATEGORY_THEMES[juice.category] || '18, 100%, 60%'
     const isClickable = onSelect || onCardClick
+    const originalPrice = getOriginalPrice(juice.price)
+    const savings = originalPrice - juice.price
 
     const handleAddToCart = (e) => {
         e.stopPropagation()
@@ -39,89 +45,125 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
         if (onCardClick) onCardClick(juice)
     }
 
+    // Animation variants
+    const cardVariants = {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+        hover: { scale: 1.03, transition: { duration: 0.2 } },
+    }
+
+    const buttonVariants = {
+        tap: { scale: 0.95 },
+    }
+
+    const badgeVariants = {
+        initial: { scale: 0 },
+        animate: { scale: 1, transition: { delay: 0.3, type: "spring", stiffness: 200 } },
+    }
+
     return (
-        <div
+        <motion.div
             className={`juice-card-wrapper ${selected ? 'selected' : ''} ${isClickable ? 'clickable' : ''}`}
             style={{ '--theme-color': themeColor }}
             onClick={isClickable ? handleCardClick : undefined}
+            variants={cardVariants}
+            initial="initial"
+            animate="animate"
+            whileHover="hover"
+            layout
         >
             <div className="juice-card-inner">
-                {/* Background emoji area */}
+                {/* Image/Emoji area with gradient */}
                 <div className={`juice-card-bg ${juice.category}-bg`}>
                     <span className="juice-emoji">{juice.image}</span>
+                    <div className="juice-card-overlay" />
+                    
+                    {/* Category badge (top right) */}
+                    <motion.div 
+                        className="category-badge-wrapper"
+                        variants={badgeVariants}
+                    >
+                        <span className={`category-indicator ${juice.category}`}>
+                            <span className="category-dot"></span>
+                        </span>
+                    </motion.div>
+
+                    {/* Hover Add Button */}
+                    {!onSelect && showCartControls && quantity === 0 && (
+                        <motion.button
+                            className="hover-add-btn"
+                            onClick={handleAddToCart}
+                            variants={buttonVariants}
+                            whileTap="tap"
+                            aria-label={`Add ${juice.name} to cart`}
+                        >
+                            <Plus size={16} />
+                            <span>Add</span>
+                        </motion.button>
+                    )}
+
+                    {/* Quantity controls overlay when item in cart */}
+                    {!onSelect && showCartControls && quantity > 0 && (
+                        <div className="hover-qty-controls">
+                            <motion.button
+                                className="hover-qty-btn"
+                                onClick={handleDecrement}
+                                variants={buttonVariants}
+                                whileTap="tap"
+                                aria-label="Decrease quantity"
+                            >
+                                <Minus size={16} />
+                            </motion.button>
+                            <span className="hover-qty-value">{quantity}</span>
+                            <motion.button
+                                className="hover-qty-btn"
+                                onClick={handleIncrement}
+                                variants={buttonVariants}
+                                whileTap="tap"
+                                aria-label="Increase quantity"
+                            >
+                                <Plus size={16} />
+                            </motion.button>
+                        </div>
+                    )}
                 </div>
 
-                {/* Gradient overlay */}
-                <div
-                    className="juice-card-gradient"
-                    style={{
-                        background: `linear-gradient(to top, hsl(${themeColor} / 0.92), hsl(${themeColor} / 0.6) 40%, transparent 70%)`
-                    }}
-                />
-
-                {/* Subscribe pill */}
-                {!onSelect && (
-                    <Link 
-                        to="/subscribe" 
-                        state={{ juice }} 
-                        className="subscribe-pill" 
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <Calendar size={10} />
-                        <span>Subscribe</span>
-                    </Link>
-                )}
-
-                {/* Category badge */}
-                <span className="juice-card-category">{juice.category}</span>
-
-                {/* Content overlay */}
+                {/* Content Section */}
                 <div className="juice-card-content">
-                    <h3 className="juice-name">{juice.name}</h3>
-                    <p className="juice-meta-line">
-                        {juice.calories && <span>{juice.calories} cal</span>}
-                        {juice.size && <span> · {juice.size}</span>}
-                    </p>
-
-                    {/* Action bar */}
-                    <div className="juice-action-bar">
+                    {/* Pricing row */}
+                    <div className="juice-pricing">
                         <span className="juice-price">₹{juice.price}</span>
-                        {!onSelect && showCartControls && (
-                            <div className="cart-controls">
-                                {quantity === 0 ? (
-                                    <button
-                                        className="btn-add-cart"
-                                        onClick={handleAddToCart}
-                                        aria-label="Add to cart"
-                                    >
-                                        <span className="cart-icon-side"><ShoppingCart size={14} /></span>
-                                        <span className="cart-label">Add</span>
-                                    </button>
-                                ) : (
-                                    <div className="quantity-controls">
-                                        <button
-                                            className="qty-btn"
-                                            onClick={handleDecrement}
-                                            aria-label="Decrease quantity"
-                                        >
-                                            <Minus size={14} />
-                                        </button>
-                                        <span className="qty-value">{quantity}</span>
-                                        <button
-                                            className="qty-btn"
-                                            onClick={handleIncrement}
-                                            aria-label="Increase quantity"
-                                        >
-                                            <Plus size={14} />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                        <span className="juice-original-price">₹{originalPrice}</span>
+                        {savings > 0 && (
+                            <span className="juice-savings">SAVE ₹{savings}</span>
                         )}
+                    </div>
+                    
+                    {/* Size/quantity */}
+                    <p className="juice-quantity">{juice.size}</p>
+                    
+                    {/* Item name */}
+                    <h3 className="juice-name">{juice.name}</h3>
+                    
+                    {/* Meta info row */}
+                    <div className="juice-meta-row">
+                        <div className="juice-meta-item">
+                            <Clock size={12} />
+                            <span>{juice.calories} cal</span>
+                        </div>
+                        <Link 
+                            to="/subscribe" 
+                            state={{ juice }} 
+                            className="subscribe-link" 
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Calendar size={12} />
+                            <span>Subscribe</span>
+                        </Link>
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     )
 }
 

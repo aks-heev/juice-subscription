@@ -126,7 +126,7 @@
 
   /* Container */
   --container-max: 1200px;
-  --container-padding: var(--space-4);
+  --container-padding: var(--space-2);
 }
 
 /* Dark Mode */

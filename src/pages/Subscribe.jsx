@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Check, ArrowRight, ArrowLeft, Calendar, Clock, Plus, MapPin, AlertTriangle } from 'lucide-react'
+import { Check, ArrowRight, ArrowLeft, Calendar, Clock, Plus, Minus, MapPin, AlertTriangle, Sparkles, Zap, Package } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { useLocation as useLocationContext } from '../context/LocationContext'
@@ -448,49 +448,135 @@ function Subscribe() {
                         <div className="plans-grid">
                             {subscriptionPlans
                                 .filter(plan => isDirectSubscription ? plan.type === 'single' : true)
-                                .map(plan => (
-                                <div
-                                    key={plan.id}
-                                    className={`plan-card card ${selectedPlan?.id === plan.id ? 'selected' : ''}`}
-                                    onClick={() => setSelectedPlan(plan)}
-                                >
-                                    {plan.isPopular && !isDirectSubscription && (
-                                        <span className="plan-badge">Most Popular</span>
-                                    )}
-                                    {plan.isTrial && (
-                                        <span className="plan-badge badge-trial">Trial</span>
-                                    )}
-                                    <h3 className="plan-name">{plan.name}</h3>
-                                    <p className="plan-duration">{plan.duration}</p>
-                                    <div className="plan-discount">
-                                        <span className="discount-value">{plan.discount}%</span>
-                                        <span className="discount-label">OFF</span>
-                                    </div>
-                                    <p className="plan-description">{plan.description}</p>
-                                    {plan.type === 'variety' && !isDirectSubscription && (
-                                        <span className="badge badge-secondary">🍹 Variety Pack</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        {selectedPlan && (
-                            <div className="quantity-selector">
-                                <label>Quantity per day:</label>
-                                <div className="quantity-controls">
-                                    <button className="btn btn-ghost" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
-                                    <span className="quantity-value">{quantity}</span>
-                                    <button className="btn btn-ghost" onClick={() => setQuantity(Math.min(5, quantity + 1))}>+</button>
-                                </div>
-                            </div>
-                        )}
-                        <div className="step-actions">
-                            <button
-                                className="btn btn-primary btn-lg"
-                                onClick={nextStep}
-                                disabled={!selectedPlan}
-                            >
-                                Continue <ArrowRight size={20} />
-                            </button>
+                                .map(plan => {
+                                    const getPlanIcon = () => {
+                                        if (plan.isTrial) return <Zap size={18} />
+                                        if (plan.type === 'variety') return <Package size={18} />
+                                        return <Sparkles size={18} />
+                                    }
+                                    
+                                    const getBasePrice = () => {
+                                        if (selectedJuice) return selectedJuice.price
+                                        if (plan.type === 'variety') {
+                                            return Math.round(juices.reduce((sum, j) => sum + j.price, 0) / juices.length)
+                                        }
+                                        return 99 // default
+                                    }
+                                    
+                                    const days = plan.id.includes('weekly') ? 7 : 30
+                                    const basePrice = getBasePrice()
+                                    const originalTotal = basePrice * days * quantity
+                                    const discountedTotal = Math.round(originalTotal * (1 - plan.discount / 100))
+                                    const perDayPrice = Math.round(discountedTotal / days)
+                                    
+                                    const features = [
+                                        `${days} days of fresh juice`,
+                                        plan.type === 'variety' ? 'Different flavor daily' : 'Same favorite daily',
+                                        'Free delivery included',
+                                    ]
+                                    
+                                    return (
+                                        <div
+                                            key={plan.id}
+                                            className={`pricing-card ${selectedPlan?.id === plan.id ? 'selected' : ''} ${plan.isPopular ? 'popular' : ''}`}
+                                            onClick={() => setSelectedPlan(plan)}
+                                        >
+                                            {/* Card Header */}
+                                            <div className="pricing-card-header">
+                                                <div className="pricing-card-glass-effect" aria-hidden="true" />
+                                                
+                                                {/* Plan Row */}
+                                                <div className="pricing-plan-row">
+                                                    <div className="pricing-plan-name">
+                                                        {getPlanIcon()}
+                                                        <span>{plan.name}</span>
+                                                    </div>
+                                                    {plan.isPopular && !isDirectSubscription && (
+                                                        <span className="pricing-badge">Popular</span>
+                                                    )}
+                                                    {plan.isTrial && (
+                                                        <span className="pricing-badge trial">Trial</span>
+                                                    )}
+                                                    {plan.type === 'variety' && !isDirectSubscription && (
+                                                        <span className="pricing-badge variety">Variety</span>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Price Row */}
+                                                <div className="pricing-price-row">
+                                                    <span className="pricing-main-price">₹{perDayPrice}</span>
+                                                    <span className="pricing-period">/day</span>
+                                                    {plan.discount > 0 && (
+                                                        <span className="pricing-original">₹{basePrice}</span>
+                                                    )}
+                                                </div>
+                                                
+                                                <p className="pricing-description">{plan.duration} • Save {plan.discount}%</p>
+                                            </div>
+                                            
+                                            {/* Card Body */}
+                                            <div className="pricing-card-body">
+                                                <ul className="pricing-features">
+                                                    {features.map((feature, idx) => (
+                                                        <li key={idx} className="pricing-feature-item">
+                                                            <Check size={16} className="feature-check" />
+                                                            <span>{feature}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                
+                                                {plan.discount >= 15 && (
+                                                    <>
+                                                        <div className="pricing-separator">
+                                                            <span>Premium perks</span>
+                                                        </div>
+                                                        <ul className="pricing-features premium">
+                                                            <li className="pricing-feature-item">
+                                                                <Check size={16} className="feature-check" />
+                                                                <span>Priority morning delivery</span>
+                                                            </li>
+                                                        </ul>
+                                                    </>
+                                                )}
+                                                
+                                                <div className="pricing-total">
+                                                    <span>Total</span>
+                                                    <strong>₹{discountedTotal.toLocaleString()}</strong>
+                                                </div>
+                                                
+                                                {/* Quantity & Continue - only show when selected */}
+                                                {selectedPlan?.id === plan.id && (
+                                                    <div className="pricing-card-actions">
+                                                        <div className="pricing-quantity">
+                                                            <span className="pricing-quantity-label">Qty/day</span>
+                                                            <div className="pricing-quantity-controls">
+                                                                <button 
+                                                                    className="pricing-qty-btn"
+                                                                    onClick={(e) => { e.stopPropagation(); setQuantity(Math.max(1, quantity - 1)); }}
+                                                                >
+                                                                    <Minus size={16} />
+                                                                </button>
+                                                                <span className="pricing-qty-value">{quantity}</span>
+                                                                <button 
+                                                                    className="pricing-qty-btn"
+                                                                    onClick={(e) => { e.stopPropagation(); setQuantity(Math.min(5, quantity + 1)); }}
+                                                                >
+                                                                    <Plus size={16} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            className="pricing-continue-btn"
+                                                            onClick={(e) => { e.stopPropagation(); nextStep(); }}
+                                                        >
+                                                            Continue <ArrowRight size={18} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
                         </div>
                     </div>
                 )}

@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import JuiceCard from '../components/features/JuiceCard'
 import JuiceDetailSheet from '../components/features/JuiceDetailSheet'
+
+const JUICE_CATEGORIES = [
+    { id: 'all', name: 'All', color: '#6B7280', emoji: '🍹' },
+    { id: 'detox', name: 'Detox', color: '#7CB518', emoji: '🥬' },
+    { id: 'energy', name: 'Energy', color: '#FF6B35', emoji: '⚡' },
+    { id: 'immunity', name: 'Immunity', color: '#FFB627', emoji: '🛡️' },
+    { id: 'refresh', name: 'Refresh', color: '#2EC4B6', emoji: '💧' },
+    { id: 'protein', name: 'Protein', color: '#9B5DE5', emoji: '💪' },
+]
 
 function Home() {
     const { juices } = useApp()
@@ -13,8 +22,30 @@ function Home() {
     const [isAutoPlaying, setIsAutoPlaying] = useState(true)
     const [selectedJuice, setSelectedJuice] = useState(null)
     const [isSheetOpen, setIsSheetOpen] = useState(false)
+    const [selectedCategories, setSelectedCategories] = useState(['all'])
     const touchStartX = useRef(0)
     const touchEndX = useRef(0)
+
+    const toggleCategory = (categoryId) => {
+        if (categoryId === 'all') {
+            setSelectedCategories(['all'])
+        } else {
+            setSelectedCategories(prev => {
+                const withoutAll = prev.filter(id => id !== 'all')
+                if (withoutAll.includes(categoryId)) {
+                    const newSelection = withoutAll.filter(id => id !== categoryId)
+                    return newSelection.length === 0 ? ['all'] : newSelection
+                } else {
+                    return [...withoutAll, categoryId]
+                }
+            })
+        }
+    }
+
+    const filteredJuices = useMemo(() => {
+        if (selectedCategories.includes('all')) return juices
+        return juices.filter(juice => selectedCategories.includes(juice.category))
+    }, [juices, selectedCategories])
 
     const handleJuiceClick = (juice) => {
         setSelectedJuice(juice)
@@ -165,18 +196,46 @@ function Home() {
             {/* Juices Section */}
             <section className="juices-section">
                 <div className="container">
-                    <div className="section-header">
-                        <div>
-                            <h2 className="section-title">Popular Juices</h2>
-                            <p className="section-subtitle">Handcrafted with fresh ingredients</p>
+                    {/* Category Filter */}
+                    <div className="category-filter">
+                        <div className="category-filter-label">Browse Juices</div>
+                        <div className="category-circles">
+                            {JUICE_CATEGORIES.map(category => {
+                                const isSelected = selectedCategories.includes(category.id)
+                                
+                                return (
+                                    <button
+                                        key={category.id}
+                                        className={`category-circle-item ${isSelected ? 'selected' : ''}`}
+                                        onClick={() => toggleCategory(category.id)}
+                                        style={{ '--cat-color': category.color }}
+                                    >
+                                        <div className="circle-avatar">
+                                            <span className="circle-emoji">{category.emoji}</span>
+                                            {isSelected && (
+                                                <span className="circle-check">
+                                                    <Check size={12} strokeWidth={3} />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="circle-name">{category.name}</span>
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
                     <div className="juices-scroll">
-                        {juices.map(juice => (
+                        {filteredJuices.map(juice => (
                             <div key={juice.id} className="juice-item">
                                 <JuiceCard juice={juice} onCardClick={handleJuiceClick} />
                             </div>
                         ))}
+                        {filteredJuices.length === 0 && (
+                            <div className="no-juices">
+                                <span className="no-juices-emoji">🍹</span>
+                                <p>No juices found in this category</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
@@ -449,19 +508,123 @@ function Home() {
                     background: var(--bg-primary);
                 }
 
-                .section-header {
-                    margin-bottom: var(--space-6);
+                /* Category Filter */
+                .category-filter {
+                    margin-bottom: var(--space-5);
                 }
 
-                .section-title {
-                    font-size: var(--text-xl);
+                .category-filter-label {
+                    font-size: var(--text-lg);
                     font-weight: var(--font-bold);
-                    margin-bottom: var(--space-1);
+                    color: var(--color-gray-900);
+                    margin-bottom: var(--space-3);
                 }
 
-                .section-subtitle {
-                    font-size: var(--text-sm);
+                .category-circles {
+                    display: flex;
+                    gap: var(--space-4);
+                    overflow-x: auto;
+                    padding-bottom: var(--space-2);
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+
+                .category-circles::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .category-circle-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: var(--space-2);
+                    padding: 0;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    min-width: 56px;
+                }
+
+                .circle-avatar {
+                    position: relative;
+                    width: 56px;
+                    height: 56px;
+                    border-radius: var(--radius-full);
+                    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 3px solid transparent;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                }
+
+                .category-circle-item:hover .circle-avatar {
+                    border-color: var(--cat-color);
+                    transform: scale(1.05);
+                }
+
+                .category-circle-item.selected .circle-avatar {
+                    border-color: var(--cat-color);
+                    background: linear-gradient(135deg, color-mix(in srgb, var(--cat-color) 15%, white) 0%, color-mix(in srgb, var(--cat-color) 25%, white) 100%);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--cat-color) 30%, transparent);
+                }
+
+                .circle-emoji {
+                    font-size: 28px;
+                    line-height: 1;
+                    transition: transform 0.2s ease;
+                }
+
+                .category-circle-item:hover .circle-emoji {
+                    transform: scale(1.1);
+                }
+
+                .circle-check {
+                    position: absolute;
+                    bottom: -2px;
+                    right: -2px;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: var(--radius-full);
+                    background: var(--cat-color);
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+                }
+
+                .circle-name {
+                    font-size: var(--text-xs);
+                    font-weight: var(--font-medium);
                     color: var(--color-gray-600);
+                    text-align: center;
+                    transition: color 0.2s ease;
+                }
+
+                .category-circle-item.selected .circle-name {
+                    color: var(--cat-color);
+                    font-weight: var(--font-semibold);
+                }
+
+                /* No juices message */
+                .no-juices {
+                    grid-column: 1 / -1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: var(--space-12) var(--space-4);
+                    text-align: center;
+                    color: var(--color-gray-500);
+                }
+
+                .no-juices-emoji {
+                    font-size: 48px;
+                    margin-bottom: var(--space-3);
+                    opacity: 0.5;
                 }
 
                 .juices-scroll {
