@@ -6,6 +6,7 @@ function InstallPrompt() {
     const [showPrompt, setShowPrompt] = useState(false)
     const [deferredPrompt, setDeferredPrompt] = useState(null)
     const [isIOS, setIsIOS] = useState(false)
+    const [isAndroid, setIsAndroid] = useState(false)
     const [isStandalone, setIsStandalone] = useState(false)
 
     useEffect(() => {
@@ -16,9 +17,19 @@ function InstallPrompt() {
         
         setIsStandalone(standalone)
 
+        // Don't show if already installed
+        if (standalone) return
+
         // Check if iOS
         const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
         setIsIOS(iOS)
+
+        // Check if Android
+        const android = /Android/.test(navigator.userAgent)
+        setIsAndroid(android)
+
+        // Check if mobile
+        const isMobile = iOS || android || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
         // Check if user dismissed the prompt before
         const dismissed = localStorage.getItem('installPromptDismissed')
@@ -26,60 +37,46 @@ function InstallPrompt() {
         const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24)
 
         // Show prompt again after 7 days
-        if (dismissed && daysSinceDismissed < 7) {
-            return
-        }
+        if (dismissed && daysSinceDismissed < 7) return
 
-        // Don't show if already installed
-        if (standalone) {
-            return
-        }
-
-        // For iOS, show custom prompt after a delay
-        if (iOS) {
-            const timer = setTimeout(() => {
-                setShowPrompt(true)
-            }, 3000)
-            return () => clearTimeout(timer)
-        }
-
-        // For other browsers, listen for beforeinstallprompt
+        // For Android, listen for beforeinstallprompt first
+        let promptShown = false
         const handleBeforeInstallPrompt = (e) => {
             e.preventDefault()
             setDeferredPrompt(e)
-            // Show prompt after a short delay
-            setTimeout(() => {
-                setShowPrompt(true)
-            }, 3000)
+            promptShown = true
+            setTimeout(() => setShowPrompt(true), 2000)
         }
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
+        // Fallback: if beforeinstallprompt doesn't fire within 3s, show manual instructions
+        const fallbackTimer = setTimeout(() => {
+            if (!promptShown && isMobile) {
+                setShowPrompt(true)
+            }
+        }, 3000)
+
         // Listen for successful install
-        window.addEventListener('appinstalled', () => {
+        const handleAppInstalled = () => {
             setShowPrompt(false)
             setDeferredPrompt(null)
             localStorage.removeItem('installPromptDismissed')
-        })
+        }
+        window.addEventListener('appinstalled', handleAppInstalled)
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+            window.removeEventListener('appinstalled', handleAppInstalled)
+            clearTimeout(fallbackTimer)
         }
     }, [])
 
     const handleInstall = async () => {
-        if (isIOS) {
-            // Can't programmatically install on iOS, just show instructions
-            return
-        }
-
         if (deferredPrompt) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
-            
-            if (outcome === 'accepted') {
-                setShowPrompt(false)
-            }
+            if (outcome === 'accepted') setShowPrompt(false)
             setDeferredPrompt(null)
         }
     }
@@ -89,9 +86,12 @@ function InstallPrompt() {
         localStorage.setItem('installPromptDismissed', Date.now().toString())
     }
 
-    if (!showPrompt || isStandalone) {
-        return null
-    }
+    if (!showPrompt || isStandalone) return null
+
+    // Determine which instructions to show
+    const showNativeInstall = deferredPrompt !== null
+    const showIOSInstructions = isIOS && !showNativeInstall
+    const showAndroidInstructions = isAndroid && !showNativeInstall
 
     return (
         <>
@@ -110,29 +110,48 @@ function InstallPrompt() {
                 
                 <h3 className="install-prompt-title">Get the App!</h3>
                 <p className="install-prompt-description">
-                    Install Fresh Squeeze for a better experience with quick access and offline support.
+                    Install Fresh Squeeze for a better experience with quick access.
                 </p>
 
-                {isIOS ? (
-                    <div className="install-ios-instructions">
-                        <p className="ios-step">
-                            <span className="ios-step-num">1</span>
-                            Tap the <strong>Share</strong> button <span className="ios-icon">⎙</span>
-                        </p>
-                        <p className="ios-step">
-                            <span className="ios-step-num">2</span>
-                            Scroll and tap <strong>"Add to Home Screen"</strong>
-                        </p>
-                        <p className="ios-step">
-                            <span className="ios-step-num">3</span>
-                            Tap <strong>"Add"</strong> to install
-                        </p>
-                    </div>
-                ) : (
+                {showNativeInstall && (
                     <button className="btn btn-primary install-btn" onClick={handleInstall}>
                         <Download size={20} />
                         Install App
                     </button>
+                )}
+
+                {showIOSInstructions && (
+                    <div className="install-ios-instructions">
+                        <p className="ios-step">
+                            <span className="ios-step-num">1</span>
+                            Tap the <strong>Share</strong> button <span className="ios-share-icon">↑</span>
+                        </p>
+                        <p className="ios-step">
+                            <span className="ios-step-num">2</span>
+                            Tap <strong>"Add to Home Screen"</strong>
+                        </p>
+                        <p className="ios-step">
+                            <span className="ios-step-num">3</span>
+                            Tap <strong>"Add"</strong>
+                        </p>
+                    </div>
+                )}
+
+                {showAndroidInstructions && (
+                    <div className="install-ios-instructions">
+                        <p className="ios-step">
+                            <span className="ios-step-num">1</span>
+                            Tap <strong>⋮ menu</strong> (top right)
+                        </p>
+                        <p className="ios-step">
+                            <span className="ios-step-num">2</span>
+                            Tap <strong>"Add to Home screen"</strong>
+                        </p>
+                        <p className="ios-step">
+                            <span className="ios-step-num">3</span>
+                            Tap <strong>"Add"</strong>
+                        </p>
+                    </div>
                 )}
 
                 <button className="install-prompt-later" onClick={handleDismiss}>
