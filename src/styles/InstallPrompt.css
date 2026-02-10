@@ -1,0 +1,180 @@
+/* Install Prompt Styles */
+
+.install-prompt-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    animation: fadeIn 0.3s ease;
+}
+
+.install-prompt {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: var(--space-6);
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    z-index: 9999;
+    animation: installSlideUp 0.3s ease;
+    text-align: center;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes installSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.install-prompt-close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--color-gray-100);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-gray-600);
+    transition: all 0.2s ease;
+}
+
+.install-prompt-close:hover {
+    background: var(--color-gray-200);
+}
+
+.install-prompt-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-4);
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+}
+
+.install-app-emoji {
+    font-size: 36px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.install-prompt-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--color-gray-900);
+    margin-bottom: var(--space-2);
+}
+
+.install-prompt-description {
+    font-size: var(--text-sm);
+    color: var(--color-gray-600);
+    margin-bottom: var(--space-5);
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.install-btn {
+    width: 100%;
+    padding: var(--space-4);
+    font-size: var(--text-base);
+}
+
+.install-prompt-later {
+    margin-top: var(--space-3);
+    background: none;
+    border: none;
+    color: var(--color-gray-500);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    padding: var(--space-2);
+}
+
+.install-prompt-later:hover {
+    color: var(--color-gray-700);
+}
+
+/* iOS Instructions */
+.install-ios-instructions {
+    text-align: left;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.ios-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-gray-700);
+    margin-bottom: var(--space-3);
+}
+
+.ios-step:last-child {
+    margin-bottom: 0;
+}
+
+.ios-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: white;
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ios-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--color-info);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+    .install-prompt {
+        bottom: var(--space-6);
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        max-width: 400px;
+        border-radius: var(--radius-2xl);
+    }
+
+    @keyframes installSlideUp {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+}

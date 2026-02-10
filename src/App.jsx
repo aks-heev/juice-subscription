@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
 import BottomNav from './components/layout/BottomNav'
+import InstallPrompt from './components/common/InstallPrompt'
 import Home from './pages/Home'
 import PhoneAuth from './pages/PhoneAuth'
 import OTPVerification from './pages/OTPVerification'
@@ -87,6 +88,7 @@ function App() {
                     } />
                 </Routes>
                 {user && !needsProfile && <BottomNav />}
+                <InstallPrompt />
             </div>
         </CartProvider>
     )
