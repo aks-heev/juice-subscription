@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Plus, Minus, ShoppingCart, Calendar, Clock } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
+import { getImageUrl } from '../../lib/supabase'
 import '../../styles/JuiceCard.css'
 
 const CATEGORY_THEMES = {
@@ -24,6 +25,10 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
     const isClickable = onSelect || onCardClick
     const originalPrice = getOriginalPrice(juice.price)
     const savings = originalPrice - juice.price
+    
+    // Check if image is emoji or URL
+    const imageUrl = getImageUrl(juice.image)
+    const isEmoji = juice.image && juice.image.length <= 4
 
     const handleAddToCart = (e) => {
         e.stopPropagation()
@@ -75,7 +80,11 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
             <div className="juice-card-inner">
                 {/* Image/Emoji area with gradient */}
                 <div className={`juice-card-bg ${juice.category}-bg`}>
-                    <span className="juice-emoji">{juice.image}</span>
+                    {isEmoji ? (
+                        <span className="juice-emoji">{juice.image}</span>
+                    ) : (
+                        <img src={imageUrl} alt={juice.name} className="juice-image" />
+                    )}
                     <div className="juice-card-overlay" />
                     
                     {/* Category badge (top right) */}

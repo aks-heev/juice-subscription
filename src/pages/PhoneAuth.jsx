@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { Eye } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import '../styles/PhoneAuth.css'
@@ -110,6 +111,15 @@ function PhoneAuth() {
                     <button type="submit" className="btn btn-primary btn-lg">
                         Send OTP
                     </button>
+
+                    <div className="demo-divider">
+                        <span>or</span>
+                    </div>
+
+                    <Link to="/" className="btn btn-secondary btn-lg demo-btn">
+                        <Eye size={20} />
+                        View Demo
+                    </Link>
 
                     <div className="phone-auth-footer">
                         <p className="terms-text">

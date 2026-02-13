@@ -36,10 +36,13 @@ function App() {
         )
     }
 
+    // Show navbar and bottom nav for guests on public pages, or logged in users with completed profile
+    const showNav = !needsProfile
+
     return (
         <CartProvider>
             <div className="app">
-                {user && !needsProfile && <Navbar />}
+                {showNav && <Navbar />}
                 <Routes>
                     {/* Public routes for phone authentication */}
                     <Route path="/phone-auth" element={
@@ -52,10 +55,17 @@ function App() {
                         user ? (needsProfile ? <CompleteProfile /> : <Navigate to="/" replace />) : <Navigate to="/phone-auth" replace />
                     } />
 
-                    {/* Main app routes */}
+                    {/* PUBLIC: Home page - anyone can browse and add to cart */}
                     <Route path="/" element={
-                        !user ? <Navigate to="/phone-auth" replace /> : (needsProfile ? <Navigate to="/complete-profile" replace /> : <Home />)
+                        user && needsProfile ? <Navigate to="/complete-profile" replace /> : <Home />
                     } />
+
+                    {/* PUBLIC: Cart page - anyone can view cart, login required at checkout */}
+                    <Route path="/cart" element={
+                        user && needsProfile ? <Navigate to="/complete-profile" replace /> : <Cart />
+                    } />
+
+                    {/* PROTECTED: These require login */}
                     <Route path="/subscribe" element={
                         <ProtectedRoute>
                             {needsProfile ? <Navigate to="/complete-profile" replace /> : <Subscribe />}
@@ -71,11 +81,6 @@ function App() {
                             {needsProfile ? <Navigate to="/complete-profile" replace /> : <Profile />}
                         </ProtectedRoute>
                     } />
-                    <Route path="/cart" element={
-                        <ProtectedRoute>
-                            {needsProfile ? <Navigate to="/complete-profile" replace /> : <Cart />}
-                        </ProtectedRoute>
-                    } />
                     <Route path="/coming-soon" element={
                         <ProtectedRoute>
                             {needsProfile ? <Navigate to="/complete-profile" replace /> : <ComingSoon />}
@@ -87,7 +92,7 @@ function App() {
                         </ProtectedRoute>
                     } />
                 </Routes>
-                {user && !needsProfile && <BottomNav />}
+                {showNav && <BottomNav />}
                 <InstallPrompt />
             </div>
         </CartProvider>

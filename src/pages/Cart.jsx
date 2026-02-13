@@ -204,14 +204,15 @@ function Cart() {
     }
 
     const handlePlaceOrder = async () => {
-        if (!selectedAddress) {
-            showError('Please select a delivery address')
+        // Require login at checkout
+        if (!user) {
+            showError('Please login to place your order')
+            navigate('/phone-auth', { state: { returnTo: '/cart' } })
             return
         }
 
-        if (!user) {
-            showError('Please login to place an order')
-            navigate('/phone-auth')
+        if (!selectedAddress) {
+            showError('Please select a delivery address')
             return
         }
 
@@ -249,6 +250,14 @@ function Cart() {
 
     const handleProceedToCheckout = () => {
         if (items.length === 0) return
+
+        // Require login before checkout
+        if (!user) {
+            showError('Please login to checkout')
+            navigate('/phone-auth', { state: { returnTo: '/cart' } })
+            return
+        }
+
         setStep('checkout')
     }
 

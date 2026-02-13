@@ -8,3 +8,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Helper function to get public URL for storage images
+export const getImageUrl = (imagePath) => {
+    if (!imagePath) return null
+    
+    // If it's already a full URL or emoji, return as-is
+    if (imagePath.startsWith('http') || imagePath.length <= 4) {
+        return imagePath
+    }
+    
+    // Otherwise, get public URL from Supabase Storage
+    const { data } = supabase.storage
+        .from('juice-images')
+        .getPublicUrl(imagePath)
+    
+    return data?.publicUrl || imagePath
+}

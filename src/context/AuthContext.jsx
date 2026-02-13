@@ -20,6 +20,30 @@ const DEV_USER = {
     }
 }
 
+// Map raw API/Twilio errors to user-friendly messages
+const getFriendlyErrorMessage = (rawMessage) => {
+    const msg = (rawMessage || '').toLowerCase()
+
+    if (msg.includes('twilio') || msg.includes('sms') || msg.includes('messaging service'))
+        return 'SMS service is temporarily unavailable. Please try again later.'
+    if (msg.includes('rate limit') || msg.includes('too many'))
+        return 'Too many attempts. Please wait a few minutes and try again.'
+    if (msg.includes('invalid') && msg.includes('phone'))
+        return 'Please enter a valid phone number.'
+    if (msg.includes('otp') || msg.includes('token') || msg.includes('expired'))
+        return 'Invalid or expired OTP. Please try again.'
+    if (msg.includes('not authorized') || msg.includes('not allowed'))
+        return 'This phone number is not authorized. Please contact support.'
+    if (msg.includes('network') || msg.includes('fetch'))
+        return 'Network error. Please check your connection and try again.'
+    if (msg.includes('verification') || msg.includes('verify'))
+        return 'Verification failed. Please try again later.'
+    if (msg.includes('user') && msg.includes('not found'))
+        return 'Account not found. Please check your phone number.'
+    
+    return 'Something went wrong. Please try again later.'
+}
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -146,8 +170,10 @@ export function AuthProvider({ children }) {
             if (error) throw error
             return { data, error: null }
         } catch (err) {
-            setError(err.message)
-            throw new Error(err.message)
+            console.error('Phone auth error:', err.message)
+            const friendlyMsg = getFriendlyErrorMessage(err.message)
+            setError(friendlyMsg)
+            throw new Error(friendlyMsg)
         }
     }
 
@@ -168,8 +194,10 @@ export function AuthProvider({ children }) {
             
             return needsProfile
         } catch (err) {
-            setError(err.message)
-            throw new Error(err.message)
+            console.error('OTP verify error:', err.message)
+            const friendlyMsg = getFriendlyErrorMessage(err.message)
+            setError(friendlyMsg)
+            throw new Error(friendlyMsg)
         }
     }
 
