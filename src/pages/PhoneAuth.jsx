@@ -123,7 +123,7 @@ function PhoneAuth() {
 
                     <div className="phone-auth-footer">
                         <p className="terms-text">
-                            By continuing, you agree to our Terms of Service and Privacy Policy
+                            By continuing, you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>
                         </p>
                     </div>
                 </form>

@@ -13,9 +13,13 @@ import Admin from './pages/Admin'
 import Profile from './pages/Profile'
 import Cart from './pages/Cart'
 import ComingSoon from './pages/ComingSoon'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import { useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
+import './styles/ErrorBoundary.css'
 
 function App() {
     const { user, loading } = useAuth()
@@ -41,6 +45,7 @@ function App() {
 
     return (
         <CartProvider>
+            <ErrorBoundary>
             <div className="app">
                 {showNav && <Navbar />}
                 <Routes>
@@ -91,10 +96,15 @@ function App() {
                             {needsProfile ? <Navigate to="/complete-profile" replace /> : <Admin />}
                         </ProtectedRoute>
                     } />
+
+                    {/* PUBLIC: Legal pages */}
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
                 </Routes>
                 {showNav && <BottomNav />}
                 <InstallPrompt />
             </div>
+            </ErrorBoundary>
         </CartProvider>
     )
 }
