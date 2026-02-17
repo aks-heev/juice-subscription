@@ -97,44 +97,6 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
                         </span>
                     </motion.div>
 
-                    {/* Hover Add Button */}
-                    {!onSelect && showCartControls && quantity === 0 && (
-                        <motion.button
-                            className="hover-add-btn"
-                            onClick={handleAddToCart}
-                            variants={buttonVariants}
-                            whileTap="tap"
-                            aria-label={`Add ${juice.name} to cart`}
-                        >
-                            <Plus size={16} />
-                            <span>Add</span>
-                        </motion.button>
-                    )}
-
-                    {/* Quantity controls overlay when item in cart */}
-                    {!onSelect && showCartControls && quantity > 0 && (
-                        <div className="hover-qty-controls">
-                            <motion.button
-                                className="hover-qty-btn"
-                                onClick={handleDecrement}
-                                variants={buttonVariants}
-                                whileTap="tap"
-                                aria-label="Decrease quantity"
-                            >
-                                <Minus size={16} />
-                            </motion.button>
-                            <span className="hover-qty-value">{quantity}</span>
-                            <motion.button
-                                className="hover-qty-btn"
-                                onClick={handleIncrement}
-                                variants={buttonVariants}
-                                whileTap="tap"
-                                aria-label="Increase quantity"
-                            >
-                                <Plus size={16} />
-                            </motion.button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Content Section */}
@@ -148,18 +110,55 @@ function JuiceCard({ juice, onSelect, selected, onCardClick, showCartControls = 
                         )}
                     </div>
                     
-                    {/* Size/quantity */}
-                    <p className="juice-quantity">{juice.size}</p>
+                    {/* Size & calories */}
+                    <p className="juice-quantity">
+                        {juice.size}
+                        <span className="juice-meta-item">
+                            <Clock size={10} />
+                            {juice.calories} cal
+                        </span>
+                    </p>
                     
                     {/* Item name */}
                     <h3 className="juice-name">{juice.name}</h3>
                     
                     {/* Meta info row */}
                     <div className="juice-meta-row">
-                        <div className="juice-meta-item">
-                            <Clock size={12} />
-                            <span>{juice.calories} cal</span>
-                        </div>
+                        {!onSelect && showCartControls && quantity === 0 && (
+                            <motion.button
+                                className="meta-add-btn"
+                                onClick={handleAddToCart}
+                                variants={buttonVariants}
+                                whileTap="tap"
+                                aria-label={`Add ${juice.name} to cart`}
+                            >
+                                <Plus size={14} />
+                                <span>Add</span>
+                            </motion.button>
+                        )}
+                        {!onSelect && showCartControls && quantity > 0 && (
+                            <div className="meta-qty-controls">
+                                <motion.button
+                                    className="meta-qty-btn"
+                                    onClick={handleDecrement}
+                                    variants={buttonVariants}
+                                    whileTap="tap"
+                                    aria-label="Decrease quantity"
+                                >
+                                    <Minus size={14} />
+                                </motion.button>
+                                <span className="meta-qty-value">{quantity}</span>
+                                <motion.button
+                                    className="meta-qty-btn"
+                                    onClick={handleIncrement}
+                                    variants={buttonVariants}
+                                    whileTap="tap"
+                                    aria-label="Increase quantity"
+                                >
+                                    <Plus size={14} />
+                                </motion.button>
+                            </div>
+                        )}
                         <Link 
                             to="/subscribe" 
                             state={{ juice }} 

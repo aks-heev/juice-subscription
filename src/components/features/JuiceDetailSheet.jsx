@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { X, Plus, Minus, ShoppingCart, Calendar, Heart, Zap, Shield, Droplets, Leaf } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
+import { getImageUrl } from '../../lib/supabase'
 import '../../styles/JuiceDetailSheet.css'
 
 const CATEGORY_THEMES = {
@@ -72,6 +73,9 @@ function JuiceDetailSheet({ juice, isOpen, onClose }) {
 
     if (!juice) return null
 
+    const imageUrl = getImageUrl(juice.image)
+    const isEmoji = juice.image && juice.image.length <= 4
+
     const handleAddToCart = () => {
         addItem(juice)
     }
@@ -107,15 +111,14 @@ function JuiceDetailSheet({ juice, isOpen, onClose }) {
                     <X size={20} />
                 </button>
 
-                {/* Hero section with emoji */}
+                {/* Hero section with image/emoji */}
                 <div className={`sheet-hero ${juice.category}-bg`}>
-                    <span className="sheet-emoji">{juice.image}</span>
-                    <div 
-                        className="sheet-hero-gradient"
-                        style={{
-                            background: `linear-gradient(to top, hsl(${themeColor} / 0.95), hsl(${themeColor} / 0.7) 50%, transparent 100%)`
-                        }}
-                    />
+                    {isEmoji ? (
+                        <span className="sheet-emoji">{juice.image}</span>
+                    ) : (
+                        <img src={imageUrl} alt={juice.name} className="sheet-hero-image" />
+                    )}
+                    <div className="sheet-hero-gradient" />
                     <div className="sheet-hero-content">
                         <span className="sheet-category">{juice.category}</span>
                         <h2 className="sheet-title">{juice.name}</h2>

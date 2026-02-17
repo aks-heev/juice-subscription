@@ -195,28 +195,6 @@
     z-index: 5;
 }
 
-.carousel-arrow {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-full);
-    border: none;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    color: #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.carousel-arrow:hover {
-    background: white;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .carousel-dots {
     display: flex;
     gap: var(--space-2);
@@ -486,11 +464,6 @@
     .bg-fruit-1 { font-size: 120px; }
     .bg-fruit-3 { font-size: 100px; }
     .bg-fruit-6 { font-size: 90px; }
-
-    .carousel-arrow {
-        width: 44px;
-        height: 44px;
-    }
 
     .juices-scroll {
         display: grid;

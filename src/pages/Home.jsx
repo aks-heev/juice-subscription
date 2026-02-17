@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { ArrowRight, Leaf, Zap, Shield, Droplets, Star, TrendingUp, Check } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import JuiceCard from '../components/features/JuiceCard'
@@ -176,9 +176,6 @@ function Home() {
 
                 {/* Carousel Controls */}
                 <div className="carousel-controls">
-                    <button className="carousel-arrow carousel-prev" onClick={() => { prevSlide(); setIsAutoPlaying(false); setTimeout(() => setIsAutoPlaying(true), 5000); }}>
-                        <ChevronLeft size={20} />
-                    </button>
                     <div className="carousel-dots">
                         {Array.from({ length: totalSlides }).map((_, i) => (
                             <button
@@ -188,9 +185,6 @@ function Home() {
                             />
                         ))}
                     </div>
-                    <button className="carousel-arrow carousel-next" onClick={() => { nextSlide(); setIsAutoPlaying(false); setTimeout(() => setIsAutoPlaying(true), 5000); }}>
-                        <ChevronRight size={20} />
-                    </button>
                 </div>
             </section>
 

@@ -91,7 +91,7 @@
 /* Hero Section */
 .sheet-hero {
     position: relative;
-    min-height: 180px;
+    min-height: 240px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -120,17 +120,27 @@
 }
 
 .sheet-emoji {
-    font-size: 5rem;
+    font-size: 5.5rem;
     filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
     position: relative;
     z-index: 2;
-    margin-top: -20px;
+}
+
+.sheet-hero-image {
+    width: auto;
+    max-height: 200px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
+    padding: var(--space-4);
 }
 
 .sheet-hero-gradient {
     position: absolute;
     inset: 0;
     z-index: 3;
+    background: linear-gradient(to top, hsla(var(--theme-color), 0.8) 0%, hsla(var(--theme-color), 0.4) 60%, transparent 100%);
 }
 
 .sheet-hero-content {
@@ -138,7 +148,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: var(--space-4);
+    padding: var(--space-6) var(--space-4) var(--space-4);
     color: white;
     z-index: 4;
 }
